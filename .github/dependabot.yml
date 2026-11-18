@@ -1,0 +1,39 @@
+# Mises à jour automatiques des dépendances : un passage par semaine, propositions groupées et peu nombreuses.
+# Les alertes de sécurité fonctionnent indépendamment de ce fichier (réglages GitHub : Code security).
+version: 2
+updates:
+  - package-ecosystem: "composer"
+    directory: "/backend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 4
+    labels: ["dependances", "backend"]
+    groups:
+      laravel:
+        patterns: ["laravel/*", "illuminate/*"]
+    ignore:
+      # Les changements majeurs du framework demandent un travail humain : on ne les propose pas automatiquement.
+      - dependency-name: "laravel/framework"
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: "npm"
+    directory: "/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 4
+    labels: ["dependances", "frontend"]
+    groups:
+      react:
+        patterns: ["react", "react-dom", "react-router-dom"]
+      tailwind:
+        patterns: ["tailwindcss", "@tailwindcss/*"]
+      vite:
+        patterns: ["vite", "@vitejs/*"]
+
+  - package-ecosystem: "docker"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels: ["dependances", "docker"]

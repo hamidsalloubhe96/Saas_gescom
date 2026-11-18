@@ -1,0 +1,67 @@
+# Vérifications automatiques à chaque push et chaque pull request (y compris celles de Dependabot).
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: Backend (PHPUnit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.4"
+          extensions: mbstring, intl, bcmath, zip, pcntl, pdo_sqlite, sqlite3, pdo_pgsql, pgsql
+          coverage: none
+
+      - name: Dépendances Composer
+        working-directory: backend
+        run: composer install --no-interaction --no-progress --prefer-dist
+
+      - name: Préparer l'environnement
+        working-directory: backend
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      # Les tests utilisent SQLite en mémoire : aucune base PostgreSQL n'est nécessaire.
+      - name: Tests
+        working-directory: backend
+        run: php artisan test
+
+  frontend:
+    name: Frontend (build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dépendances npm
+        working-directory: frontend
+        run: npm ci --no-audit --no-fund
+
+      - name: Interface React
+        working-directory: frontend
+        run: npm run build
+
+      # Le CSS de la console lit les vues Blade du backend pour détecter les classes utilisées.
+      - name: CSS de la console
+        working-directory: frontend
+        run: npm run build:console

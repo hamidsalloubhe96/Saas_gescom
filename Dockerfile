@@ -4,7 +4,7 @@
 # Le contexte de build est la racine du dépôt (frontend/ et backend/ côte à côte).
 
 # ---------- Stage 1 : interface React ----------
-FROM node:22-alpine AS frontend
+FROM node:26-alpine AS frontend
 WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund

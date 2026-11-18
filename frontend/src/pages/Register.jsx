@@ -5,6 +5,7 @@ import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
 import Turnstile from '../components/Turnstile'
+import { PasswordField } from '../components/ui'
 
 const slugify = (s) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -15,7 +16,7 @@ export default function Register() {
   const navigate = useNavigate()
   const [config, setConfig] = useState(null) // réglages publics : inscriptions ouvertes ? vérification d'e-mail ? anti-robot ?
   const [form, setForm] = useState({
-    company: '', slug: '', name: '', email: '', password: '', password_confirmation: '', code: '',
+    company: '', slug: '', name: '', email: '', password: '', code: '',
   })
   const [slugEdited, setSlugEdited] = useState(false)
   const [step, setStep] = useState('form') // form -> code (si la vérification d'e-mail est activée)
@@ -54,18 +55,14 @@ export default function Register() {
     setForm(next)
   }
 
-  const payload = () => ({ ...form, 'cf-turnstile-response': captcha })
+  // Pas de champ de confirmation : l'œil permet de vérifier la saisie ; l'API attend tout de même la confirmation.
+  const payload = () => ({ ...form, password_confirmation: form.password, 'cf-turnstile-response': captcha })
 
   async function submit(e) {
     e.preventDefault()
     setBusy(true)
     setError(null)
     setFields({})
-    if (form.password !== form.password_confirmation) {
-      setFields({ password: 'Les mots de passe ne correspondent pas.' })
-      setBusy(false)
-      return
-    }
     if (config?.turnstile_site_key && !captcha) {
       setError('Validez d\'abord la vérification anti-robot.')
       setBusy(false)
@@ -119,30 +116,34 @@ export default function Register() {
   }
 
   return (
-    <AuthShell
+    <AuthShell wide
       title="Créer votre entreprise"
-      subtitle={`Votre espace est prêt en quelques secondes${config?.trial_days ? ` · ${config.trial_days} jours d'essai gratuit` : ''}.`}
+      subtitle={`Votre espace est prêt en quelques secondes${config?.trial_days ? ` · ${config.trial_days} jours d'essai gratuit, sans carte bancaire` : ''}.`}
       footer={<>Déjà inscrit ? <Link to="/login">Se connecter</Link></>}
     >
       <form onSubmit={submit} noValidate>
         {error && <div role="alert" className="alert">{error}</div>}
-        <Field label="Nom de l'entreprise" name="company" value={form.company} onChange={set}
-          error={fields.company} autoComplete="organization" required />
-        <Field label="Identifiant" name="slug" value={form.slug} onChange={set} error={fields.slug}
-          hint="3 à 30 caractères : lettres minuscules, chiffres, _ (sert à vous connecter)"
-          autoCapitalize="none" required />
-        <Field label="Votre nom" name="name" value={form.name} onChange={set}
-          error={fields.name} autoComplete="name" required />
-        <Field label="Email" name="email" type="email" value={form.email} onChange={set}
-          error={fields.email} autoComplete="email" required />
-        <div className="row">
-          <Field label="Mot de passe" name="password" type="password" value={form.password} onChange={set}
-            error={fields.password} hint="8 caractères minimum" autoComplete="new-password" required />
-          <Field label="Confirmation" name="password_confirmation" type="password"
-            value={form.password_confirmation} onChange={set} autoComplete="new-password" required />
+        <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2 sm:gap-y-0">
+          <fieldset className="min-w-0 border-0 p-0">
+            <legend className="mb-3 text-xs font-semibold text-muted">Entreprise</legend>
+            <Field label="Nom de l'entreprise" name="company" value={form.company} onChange={set}
+              error={fields.company} autoComplete="organization" required />
+            <Field label="Identifiant" name="slug" value={form.slug} onChange={set} error={fields.slug}
+              hint="Sert à vous connecter : lettres minuscules, chiffres, _ (3 à 30)"
+              autoCapitalize="none" required />
+          </fieldset>
+          <fieldset className="min-w-0 border-0 p-0">
+            <legend className="mb-3 text-xs font-semibold text-muted">Votre compte</legend>
+            <Field label="Votre nom" name="name" value={form.name} onChange={set}
+              error={fields.name} autoComplete="name" required />
+            <Field label="E-mail" name="email" type="email" value={form.email} onChange={set}
+              error={fields.email} autoComplete="email" required />
+          </fieldset>
         </div>
+        <PasswordField label="Mot de passe" name="password" value={form.password} onChange={set} meter
+          error={fields.password} hint="8 caractères minimum" autoComplete="new-password" required />
         <Turnstile siteKey={config?.turnstile_site_key} onToken={onToken} />
-        <button className="btn" disabled={busy || !config}>{busy ? 'Envoi…' : config?.email_verification ? 'Continuer' : "Créer l'entreprise"}</button>
+        <button className="btn mt-1" disabled={busy || !config}>{busy ? 'Envoi…' : config?.email_verification ? 'Continuer' : "Créer mon espace"}</button>
       </form>
     </AuthShell>
   )

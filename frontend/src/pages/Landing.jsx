@@ -245,9 +245,11 @@ export default function Landing() {
           {FEATURES.map(([Icon, title, text], i) => (
             <Reveal key={title} delay={(i % 4) * 60}>
               <article className="h-full rounded-xl border border-line bg-surface p-5 transition-colors duration-200 hover:border-accent">
-                <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-accent"><Icon className="size-5" aria-hidden="true" /></span>
-                <h3 className="mt-4">{title}</h3>
-                <p className="mt-1.5 text-sm text-muted">{text}</p>
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent"><Icon className="size-5" aria-hidden="true" /></span>
+                  <h3 className="leading-snug">{title}</h3>
+                </div>
+                <p className="mt-3 text-sm text-muted">{text}</p>
               </article>
             </Reveal>
           ))}

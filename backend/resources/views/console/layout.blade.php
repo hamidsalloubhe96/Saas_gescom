@@ -50,7 +50,7 @@
     </header>
     <div id="console-overlay" class="fixed inset-0 z-40 hidden bg-black/55 lg:hidden" onclick="toggleDrawer(false)" aria-hidden="true"></div>
 
-    <aside id="console-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col gap-4 overflow-y-auto bg-side p-4 text-side-ink transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0">
+    <aside id="console-sidebar" class="fixed inset-y-0 left-0 z-50 flex w-64 -translate-x-full flex-col gap-3 overflow-hidden bg-side p-4 text-side-ink transition-transform duration-200 ease-out lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0">
         <div class="flex items-center justify-between px-1">
             <span class="inline-flex items-center gap-2.5 font-display text-lg font-semibold text-white">
                 <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>
@@ -58,7 +58,7 @@
             </span>
             <button type="button" onclick="toggleDrawer(false)" aria-label="Fermer le menu" class="grid size-10 place-items-center rounded-lg hover:bg-side-hover hover:text-white lg:hidden"><x-icon name="close" class="size-5" /></button>
         </div>
-        <nav aria-label="Navigation de la console" class="flex flex-col gap-0.5">
+        <nav aria-label="Navigation de la console" class="-mr-2 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-2 [scrollbar-color:rgba(255,255,255,.25)_transparent] [scrollbar-width:thin]">
             @foreach($groups as $title => $items)
                 @php($visible = collect($items)->filter(fn ($i) => \Illuminate\Support\Facades\Route::has($i[1]) && ($i[2] === null || $admin->can($i[2]))))
                 @if($visible->isNotEmpty())
@@ -73,7 +73,7 @@
             <div class="px-3 pb-1 pt-3 text-[.68rem] font-semibold tracking-wider text-side-ink/70">COMPTE</div>
             <a href="{{ route('console.password') }}" class="{{ $navLink(request()->routeIs('console.password*', 'console.twofactor.setup*')) }}"><x-icon name="account" />Mon compte</a>
         </nav>
-        <div class="mt-auto grid gap-1 px-1 text-sm">
+        <div class="grid shrink-0 gap-1 border-t border-white/10 px-1 pt-3 text-sm">
             <strong class="truncate text-white">{{ $admin->name }}</strong>
             <span class="text-xs">{{ $admin->roleLabel() }}</span>
             <button type="button" onclick="toggleTheme()" class="btn btn-ghost btn-sm mt-2"><x-icon name="theme" class="size-4" />Thème clair / sombre</button>

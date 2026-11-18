@@ -1,6 +1,7 @@
 @extends('console.layout')
 @section('title', 'Mon compte')
 @section('content')
+    <div class="mx-auto w-full max-w-xl">
     <header class="page-head">
         <div>
             <h1>Mon compte</h1>
@@ -8,7 +9,7 @@
         </div>
     </header>
 
-    <section class="panel" style="max-width:520px">
+    <section class="panel">
         <h2>Changer mon mot de passe</h2>
         <form method="POST" action="{{ route('console.password.update') }}" novalidate>
             @csrf @method('PUT')
@@ -23,10 +24,11 @@
         </form>
     </section>
 
-    <section class="panel" style="max-width:520px">
+    <section class="panel">
         <h2>Double authentification
             @if(auth('admin')->user()->two_factor_confirmed_at)<span class="pill pill-ok">Activée</span>@else<span class="pill pill-warn">Non activée</span>@endif
         </h2>
         <a class="btn btn-secondary" href="{{ route('console.twofactor.setup') }}">Gérer</a>
     </section>
+    </div>
 @endsection

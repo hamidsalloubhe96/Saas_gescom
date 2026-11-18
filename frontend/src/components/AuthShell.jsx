@@ -1,3 +1,4 @@
+import { cn } from '../lib/cn'
 import { Brand, InvoicesIcon, PosIcon, ProductsIcon } from './ui'
 
 const POINTS = [
@@ -7,9 +8,9 @@ const POINTS = [
 ]
 
 /** Page d'authentification : panneau de présentation (à partir de lg) + carte de formulaire. */
-export default function AuthShell({ title, subtitle, children, footer }) {
+export default function AuthShell({ title, subtitle, children, footer, wide = false }) {
   return (
-    <main className="grid min-h-screen lg:grid-cols-[minmax(320px,42%)_1fr]">
+    <main className={cn('grid min-h-screen', wide ? 'lg:grid-cols-[minmax(300px,30%)_1fr]' : 'lg:grid-cols-[minmax(320px,42%)_1fr]')}>
       <aside className="hidden flex-col gap-6 bg-side p-12 text-side-ink lg:flex">
         <Brand light />
         <h2 className="mt-8 max-w-sm text-3xl font-semibold leading-tight text-white">Pilotez votre activité commerciale, simplement.</h2>
@@ -24,7 +25,7 @@ export default function AuthShell({ title, subtitle, children, footer }) {
         <p className="mt-auto text-sm opacity-75">Chaque entreprise dispose de son propre espace de données isolé.</p>
       </aside>
       <section className="grid place-items-center px-4 py-8">
-        <div className="w-full max-w-md rounded-2xl border border-line bg-surface p-6 sm:p-8 motion-safe:animate-[gc-pop_.35s_ease_both]">
+        <div className={cn('w-full rounded-2xl border border-line bg-surface p-6 sm:p-8 motion-safe:animate-[gc-pop_.35s_ease_both]', wide ? 'max-w-2xl' : 'max-w-md')}>
           <div className="mb-5 lg:hidden"><Brand /></div>
           <h1>{title}</h1>
           <p className="muted">{subtitle}</p>

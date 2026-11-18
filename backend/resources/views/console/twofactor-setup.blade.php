@@ -1,6 +1,7 @@
 @extends('console.layout')
 @section('title', 'Double authentification')
 @section('content')
+    <div class="mx-auto w-full max-w-xl">
     <header class="page-head">
         <div>
             <h1>Double authentification</h1>
@@ -44,4 +45,5 @@
             </form>
         </section>
     @endif
+    </div>
 @endsection

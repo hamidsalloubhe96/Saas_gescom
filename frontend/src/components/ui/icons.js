@@ -53,6 +53,7 @@ export {
   UserRound as AccountIcon,
   ChevronDown as ChevronDownIcon,
   Star as StarIcon,
+  EyeOff as EyeOffIcon,
   Phone as PhoneIcon,
   Mail as MailIcon,
 } from 'lucide-react'

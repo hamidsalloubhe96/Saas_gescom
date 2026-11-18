@@ -32,6 +32,8 @@ class AuthController extends Controller
         ]);
 
         $this->verifyTurnstile($request);
+        // Mémorisé le temps du parcours (la double authentification éventuelle vient après).
+        $request->session()->put('console.remember', $request->boolean('remember'));
 
         $admin = PlatformAdmin::where('email', $data['email'])->first();
 
@@ -104,7 +106,7 @@ class AuthController extends Controller
 
     private function completeLogin(Request $request, PlatformAdmin $admin): RedirectResponse
     {
-        Auth::guard('admin')->login($admin);
+        Auth::guard('admin')->login($admin, (bool) $request->session()->pull('console.remember', false));
         $request->session()->regenerate();
         $admin->forceFill(['last_login_at' => now()])->save();
         AuditLog::record('auth.login', 'Connexion à la console', null, [], $admin);

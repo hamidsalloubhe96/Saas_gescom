@@ -1,14 +1,23 @@
 import axios from 'axios'
 
+// Le jeton est gardé dans le navigateur (« Se souvenir de moi ») ou seulement le temps de l'onglet.
+const SESSION_KEYS = ['token']
+
 export const storage = {
+  persist: true,
   get: (k) => {
-    try { return localStorage.getItem(k) } catch { return null }
+    try { return SESSION_KEYS.includes(k) ? (sessionStorage.getItem(k) ?? localStorage.getItem(k)) : localStorage.getItem(k) } catch { return null }
   },
   set: (k, v) => {
-    try { localStorage.setItem(k, v) } catch { /* ignore */ }
+    try {
+      if (!SESSION_KEYS.includes(k)) return localStorage.setItem(k, v)
+      const [keep, drop] = storage.persist ? [localStorage, sessionStorage] : [sessionStorage, localStorage]
+      keep.setItem(k, v)
+      drop.removeItem(k)
+    } catch { /* ignore */ }
   },
   remove: (k) => {
-    try { localStorage.removeItem(k) } catch { /* ignore */ }
+    try { localStorage.removeItem(k); sessionStorage.removeItem(k) } catch { /* ignore */ }
   },
 }
 

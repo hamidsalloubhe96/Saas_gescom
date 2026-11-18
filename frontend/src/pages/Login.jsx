@@ -11,6 +11,7 @@ export default function Login() {
   const navigate = useNavigate()
   const notice = useLocation().state?.notice
   const [form, setForm] = useState({ tenant: storage.get('tenant') ?? '', email: '', password: '' })
+  const [remember, setRemember] = useState(true)
   const [error, setError] = useState(null)
   const [fields, setFields] = useState({})
   const [busy, setBusy] = useState(false)
@@ -25,7 +26,7 @@ export default function Login() {
     setError(null)
     setFields({})
     try {
-      await login({ ...form, tenant: form.tenant.trim().toLowerCase() })
+      await login({ ...form, tenant: form.tenant.trim().toLowerCase(), remember })
       navigate('/', { replace: true })
     } catch (err) {
       const parsed = parseError(err)
@@ -42,8 +43,10 @@ export default function Login() {
     <AuthShell
       title="Connexion"
       subtitle="Accédez à l'espace de votre entreprise."
-      footer={<>Pas encore d'espace ? <Link to="/register">Créer une entreprise</Link> · <Link to="/demande">Demander un accès</Link>
-        <span className="legal-foot"><Link to="/legal/terms">Conditions</Link> · <Link to="/legal/privacy">Confidentialité</Link></span></>}
+      footer={<>
+        <p className="m-0">Pas encore d'espace ? <Link to="/register" className="font-semibold">Créer une entreprise</Link> · <Link to="/demande" className="font-semibold">Demander un accès</Link></p>
+        <p className="mb-0 mt-3"><Link to="/bienvenue" className="text-muted no-underline hover:underline">Retour au site</Link></p>
+      </>}
     >
       <form onSubmit={submit} noValidate>
         {notice && <div role="status" className="alert alert-ok">{notice}</div>}
@@ -54,7 +57,10 @@ export default function Login() {
           error={fields.email} autoComplete="username" required />
         <PasswordField label="Mot de passe" name="password" value={form.password} onChange={set}
           error={fields.password} autoComplete="current-password" required />
-        <p className="auth-footer" style={{ margin: '0 0 .75rem', textAlign: 'right' }}><Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link></p>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
+          <label className="flex items-center gap-2"><input type="checkbox" className="size-4 accent-[var(--accent)]" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Se souvenir de moi</label>
+          <Link to="/mot-de-passe-oublie" className="font-semibold">Mot de passe oublié ?</Link>
+        </div>
         <button className="btn" disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'}</button>
       </form>
     </AuthShell>

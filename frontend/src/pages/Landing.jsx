@@ -6,6 +6,7 @@ import {
   AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
   PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
 } from '../components/ui'
+import Showcase from '../components/landing/Showcase'
 import { cn } from '../lib/cn'
 import { fmtMoney } from '../lib/format'
 
@@ -258,29 +259,7 @@ export default function Landing() {
 
       <Section id="apercu" alt>
         <Heading title="Aperçu de la plateforme" sub="Des écrans simples, pensés pour aller vite au quotidien." />
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            ['Caisse', [['Riz 25 kg', '18 000'], ['Huile 5 L', '6 500'], ['Total', '24 500', true]]],
-            ['Facture', [['FAC-2026-0042', 'Payée', 'ok'], ['FAC-2026-0043', 'Partielle', 'warn'], ['FAC-2026-0044', 'Impayée', 'bad']]],
-            ['Stock', [['Sucre 1 kg', '240'], ['Savon', '12', 'low'], ['Lait en poudre', '96']]],
-          ].map(([title, rows], i) => (
-            <Reveal key={title} delay={i * 80}>
-              <article aria-label={`Aperçu : ${title}`} className="h-full rounded-xl border border-line bg-surface p-5">
-                <h3 className="mb-3">{title}</h3>
-                <div className="grid gap-2">
-                  {rows.map(([a, b, tone]) => (
-                    <div key={a} className={cn('flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm', tone === true ? 'bg-accent-soft font-semibold' : 'bg-bg')}>
-                      <span>{a}</span>
-                      {['ok', 'warn', 'bad'].includes(tone)
-                        ? <span className={cn('pill', tone === 'ok' && 'pill-on', tone === 'warn' && 'pill-warn', tone === 'bad' && 'pill-bad')}>{tone === 'bad' && '✕ '}{b}</span>
-                        : <span className="flex items-center gap-2 font-display font-semibold tabular-nums">{b}{tone === 'low' && <span className="pill pill-warn">Bas</span>}</span>}
-                    </div>
-                  ))}
-                </div>
-              </article>
-            </Reveal>
-          ))}
-        </div>
+        <Showcase />
       </Section>
 
       <Section id="a-propos">

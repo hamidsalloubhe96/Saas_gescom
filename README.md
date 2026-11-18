@@ -105,6 +105,18 @@ L'offre gratuite de Render bloque le SMTP sortant (ports 25, 465, 587) : l'envoi
 2. Générer une clé API (*SMTP & API* > *Clés API*).
 3. Sur Render : `MAIL_MAILER=brevo`, `BREVO_API_KEY=<clé>`, `MAIL_FROM_ADDRESS=<l'expéditeur validé>`, `MAIL_FROM_NAME=GestCom`. Supprimer `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
 
+### Premier démarrage sans e-mail (premier administrateur et première entreprise)
+
+Au démarrage du conteneur, `php artisan platform:bootstrap` lit ces variables et crée les comptes manquants (idempotent : relancé, il ne duplique rien). Aucun e-mail n'est nécessaire.
+
+| Variable | Rôle |
+|---|---|
+| `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PASSWORD` (8 car. min.), `BOOTSTRAP_ADMIN_NAME` | super administrateur de la console (`/console`) |
+| `BOOTSTRAP_COMPANY`, `BOOTSTRAP_SLUG` | première entreprise (identifiant : minuscules, chiffres, `_`, 3 à 30) |
+| `BOOTSTRAP_USER_EMAIL`, `BOOTSTRAP_USER_PASSWORD`, `BOOTSTRAP_USER_NAME` | administrateur de cette entreprise |
+
+Une fois les comptes créés, **supprimer ces variables** de l'hébergeur (les mots de passe n'ont plus à y rester).
+
 Variables utiles : `APP_KEY`, `APP_URL`, `CENTRAL_DOMAINS`, `MAIL_*`, `CONSOLE_ALERT_EMAIL`, `PAYMENT_WEBHOOK_SECRET`, `TURNSTILE_*`, `BACKUP_DISK`, `PG_BIN_PATH` (local Windows uniquement).
 **Attention** : le disque de Render est éphémère ; pour conserver sauvegardes et exports, configurez un disque S3 (`BACKUP_DISK`) ou un disque persistant.
 

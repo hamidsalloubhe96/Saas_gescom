@@ -22,6 +22,9 @@ if [ "${RUN_MIGRATIONS:-true}" = "true" ]; then
   php artisan tenants:migrate --force --no-interaction
 fi
 
+# Premier démarrage : premier administrateur de la console et première entreprise (variables BOOTSTRAP_*, sans e-mail).
+php artisan platform:bootstrap || echo "platform:bootstrap a échoué (non bloquant)"
+
 # Planificateur : exÃ©cute les tÃ¢ches quotidiennes de la plateforme (abonnements, nettoyage, sauvegarde) Ã  6 h.
 # Un seul processus suffit (un seul service). DÃ©sactivable avec SCHEDULER_ENABLED=false.
 if [ "${SCHEDULER_ENABLED:-true}" = "true" ]; then

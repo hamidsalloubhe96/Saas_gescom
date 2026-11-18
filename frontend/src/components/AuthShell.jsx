@@ -11,9 +11,9 @@ export default function AuthShell({ title, subtitle, children, footer, wide = fa
     <main className="grid min-h-screen place-items-center bg-bg px-4 py-8">
       <div className={cn(
         'grid w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-xl motion-safe:animate-[gc-pop_.35s_ease_both]',
-        wide ? 'max-w-5xl lg:grid-cols-[24.5rem_1fr]' : 'max-w-4xl lg:grid-cols-[24.5rem_1fr]',
+        wide ? 'max-w-4xl lg:grid-cols-[20rem_1fr]' : 'max-w-4xl lg:grid-cols-[24.5rem_1fr]',
       )}>
-        <aside className="relative hidden flex-col overflow-hidden bg-side p-9 text-side-ink lg:flex">
+        <aside className={cn('relative hidden flex-col overflow-hidden bg-side p-9 text-side-ink lg:flex', wide && 'p-7')}>
           {/* Cercles décoratifs discrets */}
           <span className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full border border-white/10" aria-hidden="true" />
           <span className="pointer-events-none absolute -bottom-10 -right-10 size-56 rounded-full border border-white/10" aria-hidden="true" />
@@ -29,7 +29,7 @@ export default function AuthShell({ title, subtitle, children, footer, wide = fa
           </p>
         </aside>
 
-        <section className="p-6 sm:p-9">
+        <section className={cn('p-6 sm:p-9', wide && 'sm:p-7 [&_h1]:text-2xl [&_.muted]:text-sm [&_.field_input]:py-2 [&_.field-hint]:min-h-0 [&_.field-error]:min-h-0 [&_.auth-footer]:mt-3 [&_.alert]:py-2 [&_.alert]:text-sm')}>
           <div className="mb-5 lg:hidden"><Brand /></div>
           <h1>{title}</h1>
           <p className="muted">{subtitle}</p>

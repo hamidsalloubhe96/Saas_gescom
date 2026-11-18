@@ -1,0 +1,54 @@
+databases:
+  - name: saas-commerce-db
+    plan: basic-256mb
+    databaseName: saas_commerce
+    user: saas_commerce
+    postgresMajorVersion: "16"
+
+services:
+  # ---------- UN SEUL SERVICE : API Laravel + interface React (Docker) ----------
+  # Le Dockerfile à la racine construit React puis l'embarque dans Laravel :
+  # une seule adresse, un seul déploiement, aucun réglage CORS.
+  - type: web
+    name: saas-commerce
+    runtime: docker
+    plan: starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /up
+    autoDeployTrigger: commit
+    envVars:
+      - key: APP_NAME
+        value: SaaS Commerce
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_LOCALE
+        value: fr
+      - key: APP_FALLBACK_LOCALE
+        value: fr
+      - key: APP_KEY
+        generateValue: true # à remplacer par une clé "base64:..." (php artisan key:generate --show)
+      - key: APP_URL
+        sync: false # ex. https://saas-commerce.onrender.com
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_URL
+        fromDatabase:
+          name: saas-commerce-db
+          property: connectionString
+      - key: DB_SSLMODE
+        value: require
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: file
+      - key: QUEUE_CONNECTION
+        value: database
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: RUN_MIGRATIONS
+        value: "true"
+      - key: CENTRAL_DOMAINS
+        sync: false # ex. saas-commerce.onrender.com

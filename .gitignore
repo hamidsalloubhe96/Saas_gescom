@@ -1,0 +1,5 @@
+# Outils locaux (ne pas versionner)
+.claude/
+.codex/
+.gemini/
+.vscode/

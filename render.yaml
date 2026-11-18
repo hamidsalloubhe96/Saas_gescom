@@ -50,5 +50,7 @@ services:
         value: stderr
       - key: RUN_MIGRATIONS
         value: "true"
+      - key: TRUSTED_PROXY_HOPS
+        value: "1" # Render seul devant l'application ; mettre 2 quand le domaine passe par Cloudflare
       - key: CENTRAL_DOMAINS
         sync: false # ex. saas-commerce.onrender.com

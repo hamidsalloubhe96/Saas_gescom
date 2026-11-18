@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Services\PasswordResetCode;
+use App\Services\Turnstile;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rules\Password;
@@ -18,9 +19,12 @@ class PasswordResetController extends Controller
         return 't:'.tenant('id');
     }
 
-    public function forgot(Request $request, PasswordResetCode $codes): JsonResponse
+    public function forgot(Request $request, PasswordResetCode $codes, Turnstile $turnstile): JsonResponse
     {
         $data = $request->validate(['email' => ['required', 'email', 'max:190']]);
+        if (! $turnstile->verify($request)) {
+            throw ValidationException::withMessages(['email' => ['Vérification anti-robot échouée : réessayez.']]);
+        }
         $user = User::where('email', $data['email'])->first();
 
         if (! $user) {

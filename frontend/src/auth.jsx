@@ -59,8 +59,8 @@ export function AuthProvider({ children }) {
     apply(data)
   }, [apply])
 
-  const login = useCallback(async ({ tenant: tenantId, email, password, remember = true }) => {
-    const { data } = await api.post('/login', { email, password }, { tenant: tenantId })
+  const login = useCallback(async ({ tenant: tenantId, email, password, remember = true, captcha = null }) => {
+    const { data } = await api.post('/login', { email, password, 'cf-turnstile-response': captcha }, { tenant: tenantId })
     storage.persist = remember
     start(data)
   }, [start])

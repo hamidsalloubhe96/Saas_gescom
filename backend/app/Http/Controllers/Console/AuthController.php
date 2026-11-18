@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Console;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\PlatformAdmin;
+use App\Services\LoginAttempts;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -35,16 +36,26 @@ class AuthController extends Controller
         // Mémorisé le temps du parcours (la double authentification éventuelle vient après).
         $request->session()->put('console.remember', $request->boolean('remember'));
 
+        // Blocage progressif par compte : après 5 échecs, une pause qui s'allonge (15 min au plus).
+        $attempts = app(LoginAttempts::class);
+        $key = LoginAttempts::key('console', $data['email']);
+        if ($wait = $attempts->waitSeconds($key)) {
+            throw ValidationException::withMessages(['email' => LoginAttempts::message($wait)]);
+        }
+
         $admin = PlatformAdmin::where('email', $data['email'])->first();
 
         // Un calcul de hachage est toujours effectué, pour ne pas révéler par le temps de réponse si l'e-mail existe.
         $valid = Hash::check($data['password'], $admin?->password ?? Hash::make(Str::random(32)));
 
         if (! $admin || ! $valid || ! $admin->is_active) {
+            $attempts->fail($key);
             AuditLog::record('auth.login_failed', "Échec de connexion console pour {$data['email']}", null, ['email' => $data['email']], null);
 
             throw ValidationException::withMessages(['email' => 'Identifiants invalides.']);
         }
+
+        $attempts->clear($key);
 
         if ($admin->two_factor_confirmed_at) {
             $request->session()->put('console.2fa', ['id' => $admin->id, 'at' => time(), 'attempts' => 0]);

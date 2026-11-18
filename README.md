@@ -59,6 +59,13 @@ cd backend && php artisan console:create-admin vous@exemple.com --name="Votre no
 - Droits dans `backend/config/console.php`. Anti-robot Cloudflare Turnstile optionnel : `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`.
 - Tests : `cd backend && php artisan test` (SQLite en mémoire, ne touche pas à la base de développement).
 
+### Sécurité et protection contre les robots
+
+- **Blocage progressif par compte** : 5 échecs de connexion libres, puis une pause qui double (30 s, 1 min, 2 min… 15 min au plus) ; une connexion réussie remet tout à zéro. Valable pour l'application (par entreprise et e-mail) et pour la console.
+- **Adresse IP réelle** : derrière Render (et Cloudflare), les limites de tentatives par IP exigent `TRUSTED_PROXY_HOPS` : `0` en local, `1` sur Render, `2` quand le domaine passe par Cloudflare puis Render. L'application lit l'entrée de `X-Forwarded-For` située à ce rang depuis la fin : un visiteur ne peut pas la falsifier.
+- **Cloudflare Turnstile** (gratuit, sans domaine rattaché à Cloudflare) : créez un widget dans le tableau de bord Cloudflare (Turnstile), puis renseignez `TURNSTILE_SITE_KEY` et `TURNSTILE_SECRET_KEY` sur Render. Il protège la connexion de la console, la connexion des entreprises, « mot de passe oublié », l'inscription et la demande d'accès. Sans clés, il est inactif.
+- **Quand vous aurez un domaine** : l'ajouter à Cloudflare (plan gratuit), créer un CNAME vers le service Render avec le nuage orange, ajouter le domaine dans Render, chiffrement « Full (strict) », activer « Bot Fight Mode » et les règles gérées du pare-feu, créer des règles de limitation de débit sur `/api/login`, `/api/password/*`, `/console/login` et `/api/register-tenant`, puis passer `TRUSTED_PROXY_HOPS` à `2`.
+
 ### Interface et styles (Tailwind CSS v4)
 
 Tout est stylé avec **Tailwind** : l'application React, la page vitrine et la console Blade partagent les mêmes jetons de design (`frontend/src/theme.css` : palette teal `#20847D`, polices Rubik et Nunito Sans auto-hébergées, mode clair/sombre).

@@ -1,9 +1,10 @@
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Link, Navigate, useLocation, useNavigate } from 'react-router-dom'
-import { parseError, storage } from '../api'
+import api, { parseError, storage } from '../api'
 import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
+import Turnstile from '../components/Turnstile'
 import { PasswordField } from '../components/ui'
 
 export default function Login() {
@@ -15,6 +16,15 @@ export default function Login() {
   const [error, setError] = useState(null)
   const [fields, setFields] = useState({})
   const [busy, setBusy] = useState(false)
+  // Contrôle anti-robot (Cloudflare Turnstile), affiché seulement si le serveur a une clé de site.
+  const [siteKey, setSiteKey] = useState(null)
+  const [captcha, setCaptcha] = useState(null)
+  const [captchaKey, setCaptchaKey] = useState(0)
+  const onToken = useCallback((t) => setCaptcha(t), [])
+
+  useEffect(() => {
+    api.get('/public/config').then(({ data }) => setSiteKey(data.turnstile_site_key)).catch(() => {})
+  }, [])
 
   if (user) return <Navigate to="/" replace />
 
@@ -25,8 +35,13 @@ export default function Login() {
     setBusy(true)
     setError(null)
     setFields({})
+    if (siteKey && !captcha) {
+      setError("Validez d'abord la vérification anti-robot.")
+      setBusy(false)
+      return
+    }
     try {
-      await login({ ...form, tenant: form.tenant.trim().toLowerCase(), remember })
+      await login({ ...form, tenant: form.tenant.trim().toLowerCase(), remember, captcha })
       navigate('/', { replace: true })
     } catch (err) {
       const parsed = parseError(err)
@@ -34,6 +49,8 @@ export default function Login() {
       if (err.response?.status === 404) setFields({ tenant: 'Entreprise introuvable.' })
       else setFields(parsed.fields)
       setError(err.response?.status === 404 ? null : parsed.message)
+      setCaptcha(null)
+      setCaptchaKey((k) => k + 1) // un jeton Turnstile ne sert qu'une fois : on affiche un nouveau contrôle
     } finally {
       setBusy(false)
     }
@@ -57,6 +74,7 @@ export default function Login() {
           error={fields.email} autoComplete="username" required />
         <PasswordField label="Mot de passe" name="password" value={form.password} onChange={set}
           error={fields.password} autoComplete="current-password" required />
+        <Turnstile key={captchaKey} siteKey={siteKey} onToken={onToken} />
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2 text-sm">
           <label className="flex items-center gap-2"><input type="checkbox" className="size-4 accent-[var(--accent)]" checked={remember} onChange={(e) => setRemember(e.target.checked)} /> Se souvenir de moi</label>
           <Link to="/mot-de-passe-oublie" className="font-semibold">Mot de passe oublié ?</Link>

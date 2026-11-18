@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\TenantUser;
 use App\Models\User;
+use App\Services\LoginAttempts;
+use App\Services\Turnstile;
+use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -13,18 +16,31 @@ use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
 {
-    public function login(Request $request): JsonResponse
+    public function login(Request $request, Turnstile $turnstile, LoginAttempts $attempts): JsonResponse
     {
         $credentials = $request->validate([
             'email' => ['required', 'email'],
             'password' => ['required', 'string'],
         ]);
 
+        if (! $turnstile->verify($request)) {
+            throw ValidationException::withMessages(['email' => ['Vérification anti-robot échouée : réessayez.']]);
+        }
+
+        // Blocage progressif par compte : après 5 échecs, une pause qui s'allonge (15 min au plus).
+        $key = LoginAttempts::key('t:'.tenant('id'), $credentials['email']);
+        if ($wait = $attempts->waitSeconds($key)) {
+            throw new HttpResponseException(response()->json(['message' => LoginAttempts::message($wait), 'errors' => ['email' => [LoginAttempts::message($wait)]]], 429));
+        }
+
         $user = User::where('email', $credentials['email'])->first();
 
         if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+            $attempts->fail($key);
+
             throw ValidationException::withMessages(['email' => ['Identifiants invalides.']]);
         }
+        $attempts->clear($key);
         if (! $user->is_active) {
             throw ValidationException::withMessages(['email' => ['Ce compte est désactivé. Contactez votre administrateur.']]);
         }

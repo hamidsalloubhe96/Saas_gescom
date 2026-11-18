@@ -61,6 +61,9 @@ return [
     // En production (service unique), laisser vide : l'interface est sur la même adresse que la console.
     'frontend_url' => env('FRONTEND_URL'),
 
+    // Nombre d'intermédiaires de confiance devant l'application (0 en local, 1 Render, 2 Cloudflare + Render) : voir ResolveClientIp.
+    'trusted_proxy_hops' => (int) env('TRUSTED_PROXY_HOPS', 0),
+
     /*
     |--------------------------------------------------------------------------
     | Application Timezone

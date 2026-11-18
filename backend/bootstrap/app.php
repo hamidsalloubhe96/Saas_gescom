@@ -23,6 +23,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'console.security' => \App\Http\Middleware\ConsoleSecurity::class,
         ]);
 
+        // Adresse IP réelle du visiteur (limites de tentatives) ; le protocole et l'hôte annoncés par Render sont acceptés (HTTPS).
+        $middleware->prepend(\App\Http\Middleware\ResolveClientIp::class);
+        $middleware->trustProxies(at: '*', headers: Request::HEADER_X_FORWARDED_HOST | Request::HEADER_X_FORWARDED_PORT | Request::HEADER_X_FORWARDED_PROTO);
+
         // Console : un invité va sur /console/login ; un admin déjà connecté va sur son tableau de bord.
         $middleware->redirectGuestsTo(fn (\Illuminate\Http\Request $r) => $r->is('console', 'console/*') ? route('console.login') : null);
         $middleware->redirectUsersTo(fn (\Illuminate\Http\Request $r) => $r->is('console', 'console/*') ? route('console.dashboard') : '/');

@@ -216,24 +216,10 @@ export default function Landing() {
             </ul>
           </div>
 
-          {/* Aperçu de l'application (illustration, pas une capture) */}
-          <div aria-hidden="true" className="mx-auto w-full max-w-lg motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both]">
-            <div className="grid grid-cols-[26%_1fr] overflow-hidden rounded-t-2xl border-[8px] border-brand-950 bg-bg text-ink">
-              <div className="grid content-start gap-2 bg-side p-3 text-xs text-white">
-                <b>Boutique Test</b>
-                {[...Array(5)].map((_, i) => <i key={i} className="block h-2 rounded bg-white/20" />)}
-              </div>
-              <div className="grid content-start gap-3 p-3.5 text-xs">
-                <b>Bonjour, voici votre journée</b>
-                <div className="grid grid-cols-3 gap-2">
-                  {[['Ventes du mois', '1 240 000'], ['Impayés', '8 factures'], ['Stock bas', '5 produits']].map(([l, v]) => (
-                    <div key={l} className="rounded-md bg-surface p-2"><small className="block text-[.62rem] text-muted">{l}</small><strong className="font-display text-[.8rem]">{v}</strong></div>
-                  ))}
-                </div>
-                <div className="flex h-24 items-end gap-1.5 rounded-md bg-surface p-2">
-                  {[35, 55, 45, 75, 60, 95].map((h, i) => <span key={i} style={{ height: `${h}%` }} className={cn('flex-1 rounded-sm', i === 5 ? 'bg-brand-600' : 'bg-brand-200')} />)}
-                </div>
-              </div>
+          {/* Capture réelle de l'application avec des données de démonstration (entreprise fictive) */}
+          <div className="mx-auto w-full max-w-xl motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both] lg:max-w-none">
+            <div className="overflow-hidden rounded-t-2xl border-[8px] border-brand-950 bg-bg shadow-2xl">
+              <img src="/dashboard-demo.png" width="2160" height="1350" alt="Aperçu du tableau de bord GestCom, avec des données fictives" className="block h-auto w-full" />
             </div>
             <div className="mx-[-4%] h-3.5 rounded-b-3xl bg-brand-950/70" />
           </div>

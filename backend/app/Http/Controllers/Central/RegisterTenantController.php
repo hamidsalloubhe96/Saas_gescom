@@ -31,7 +31,12 @@ class RegisterTenantController extends Controller
         $data = $request->validate(['email' => ['required', 'email', 'max:190', new NotDisposableEmail]]);
         abort_unless($turnstile->verify($request), 422, 'La vérification anti-robot a échoué. Réessayez.');
 
-        $verification->send($data['email']);
+        try {
+            $verification->send($data['email']);
+        } catch (\Throwable $e) {
+            report($e);
+            abort(503, "L'envoi de l'e-mail de vérification est momentanément indisponible. Réessayez plus tard ou contactez l'assistance.");
+        }
 
         return response()->json(['message' => 'Un code de vérification vient d\'être envoyé à '.$data['email'].'.']);
     }

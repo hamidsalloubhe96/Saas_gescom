@@ -11,7 +11,7 @@ export default function AuthShell({ title, subtitle, children, footer, wide = fa
     <main className="grid min-h-screen place-items-center bg-bg px-4 py-8">
       <div className={cn(
         'grid w-full overflow-hidden rounded-3xl border border-line bg-surface shadow-xl motion-safe:animate-[gc-pop_.35s_ease_both]',
-        wide ? 'max-w-5xl lg:grid-cols-[34%_1fr]' : 'max-w-4xl lg:grid-cols-[44%_1fr]',
+        wide ? 'max-w-5xl lg:grid-cols-[24.5rem_1fr]' : 'max-w-4xl lg:grid-cols-[24.5rem_1fr]',
       )}>
         <aside className="relative hidden flex-col overflow-hidden bg-side p-9 text-side-ink lg:flex">
           {/* Cercles décoratifs discrets */}

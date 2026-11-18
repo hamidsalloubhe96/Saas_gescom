@@ -31,3 +31,7 @@ Thumbs.db
 /public/assets
 /public/favicon.svg
 /public/icons.svg
+
+# CSS et polices de la console, generes par npm run build:console (frontend)
+/public/console.css
+/public/files

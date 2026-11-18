@@ -10,7 +10,7 @@
             <p class="muted">{{ $tenants->total() }} résultat(s)</p>
         </div>
         @if($admin->can('tenants.create'))
-            <a class="btn" href="{{ route('console.tenants.create') }}">+ Créer une entreprise</a>
+            <a class="btn" href="{{ route('console.tenants.create') }}"><x-icon name="add" class="size-4" />Créer une entreprise</a>
         @endif
     </header>
 

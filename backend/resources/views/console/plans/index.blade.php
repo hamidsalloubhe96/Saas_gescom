@@ -6,7 +6,7 @@
             <h1>Forfaits</h1>
             <p class="muted">Les formules vendues : prix et plafonds. Un forfait désactivé n'est plus proposé aux nouveaux abonnés ; ceux qui l'ont le gardent.</p>
         </div>
-        @if($admin->can('plans.manage'))<a class="btn" href="{{ route('console.plans.create') }}">+ Nouveau forfait</a>@endif
+        @if($admin->can('plans.manage'))<a class="btn" href="{{ route('console.plans.create') }}"><x-icon name="add" class="size-4" />Nouveau forfait</a>@endif
     </header>
 
     <div class="table-wrap">
@@ -27,7 +27,7 @@
                     <td><span class="pill {{ $p->is_active ? 'pill-ok' : '' }}">{{ $p->is_active ? 'Actif' : 'Désactivé' }}</span></td>
                     <td style="white-space:nowrap">
                         @if($admin->can('plans.manage'))
-                            <a class="btn btn-secondary btn-sm" href="{{ route('console.plans.edit', $p) }}">Modifier</a>
+                            <a class="btn btn-secondary btn-sm" href="{{ route('console.plans.edit', $p) }}"><x-icon name="edit" class="size-4" />Modifier</a>
                             <form method="POST" action="{{ route('console.plans.toggle', $p) }}" style="display:inline">@csrf @method('PATCH')
                                 <button class="btn btn-secondary btn-sm">{{ $p->is_active ? 'Désactiver' : 'Activer' }}</button></form>
                         @endif

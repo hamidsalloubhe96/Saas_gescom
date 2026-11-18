@@ -10,7 +10,7 @@
             <h1>Bonjour, {{ $admin->name }}</h1>
             <p class="muted">Vue d'ensemble de la plateforme.</p>
         </div>
-        @if($admin->can('tenants.create'))<a class="btn" href="{{ route('console.tenants.create') }}">+ Créer une entreprise</a>@endif
+        @if($admin->can('tenants.create'))<a class="btn" href="{{ route('console.tenants.create') }}"><x-icon name="add" class="size-4" />Créer une entreprise</a>@endif
     </header>
 
     <form method="GET" class="toolbar" aria-label="Filtres du tableau de bord">

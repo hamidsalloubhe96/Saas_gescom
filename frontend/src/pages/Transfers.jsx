@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
+import { AddIcon } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
@@ -35,7 +36,7 @@ function List() {
             <option value="">Tous</option>
             {Object.entries(STATUS).map(([k, [l]]) => <option key={k} value={k}>{l}</option>)}
           </select>
-          {(can('transfers.manage') || can('transfers.receive')) && <button className="btn btn-inline" onClick={() => setCreating(true)}>{restricted ? '+ Demander du stock' : '+ Nouveau transfert'}</button>}
+          {(can('transfers.manage') || can('transfers.receive')) && <button className="btn btn-inline" onClick={() => setCreating(true)}><AddIcon className="size-4" aria-hidden="true" /> {restricted ? 'Demander du stock' : 'Nouveau transfert'}</button>}
         </div>
       </header>
       {error && <div role="alert" className="alert">{error}</div>}

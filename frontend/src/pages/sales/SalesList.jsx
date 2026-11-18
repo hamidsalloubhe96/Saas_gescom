@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
+import { AddIcon } from '../../components/ui'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
 import StatusPill from '../../components/StatusPill'
@@ -61,7 +62,7 @@ export default function SalesList() {
         </div>
         {can('sales.manage') && (
           <Link to={`/ventes/nouveau?type=${type}`} className="btn btn-inline btn-link">
-            + {isInvoice ? 'Nouvelle facture' : 'Nouveau devis'}
+            <AddIcon className="size-4" aria-hidden="true" /> {isInvoice ? 'Nouvelle facture' : 'Nouveau devis'}
           </Link>
         )}
       </header>

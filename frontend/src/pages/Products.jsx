@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
+import { AddIcon, BranchesIcon, HistoryIcon, IconButton, MovementIcon, RowActions } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
@@ -91,7 +92,7 @@ export default function Products() {
         </div>
         <div className="head-actions">
           {canManage && <button className="btn btn-secondary btn-inline" onClick={() => setModal({ kind: 'categories' })}>Catégories</button>}
-          {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}>+ Nouveau produit</button>}
+          {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}><AddIcon className="size-4" aria-hidden="true" /> Nouveau produit</button>}
         </div>
       </header>
 
@@ -136,11 +137,14 @@ export default function Products() {
                   <span className={`pill ${p.is_active ? 'pill-on' : 'pill-off'}`}>{p.is_active ? 'Actif' : 'Inactif'}</span>
                 </td>
                 <td className="actions">
-                  {canMove && <button className="link-btn" onClick={() => setModal({ kind: 'movement', product: p })}>Mouvement</button>}
-                  <button className="link-btn" onClick={() => setModal({ kind: 'history', product: p })}>Historique</button>
-                  {can('branches.manage') && !platform.branch && <button className="link-btn" onClick={() => setModal({ kind: 'branches', product: p })}>Points de vente</button>}
-                  {canManage && <button className="link-btn" onClick={() => setModal({ kind: 'form', product: p })}>Modifier</button>}
-                  {canManage && <button className="link-btn danger" onClick={() => remove(p)}>Supprimer</button>}
+                  <RowActions name={p.name}
+                    extra={<>
+                      {canMove && <IconButton icon={MovementIcon} label={`Mouvement de stock : ${p.name}`} onClick={() => setModal({ kind: 'movement', product: p })} />}
+                      <IconButton icon={HistoryIcon} label={`Historique du stock : ${p.name}`} onClick={() => setModal({ kind: 'history', product: p })} />
+                      {can('branches.manage') && !platform.branch && <IconButton icon={BranchesIcon} label={`Stock et prix par point de vente : ${p.name}`} onClick={() => setModal({ kind: 'branches', product: p })} />}
+                    </>}
+                    onEdit={canManage ? () => setModal({ kind: 'form', product: p }) : undefined}
+                    onDelete={canManage ? () => remove(p) : undefined} />
                 </td>
               </tr>
             ))}

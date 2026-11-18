@@ -9,8 +9,11 @@ WORKDIR /frontend
 COPY frontend/package.json frontend/package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY frontend/ ./
+# Tailwind lit les vues Blade de la console pour détecter les classes qu'elles utilisent.
+COPY backend/resources/views /backend/resources/views
 # frontend/.env.production fixe VITE_API_URL=/api (même origine que l'API : aucun CORS).
-RUN npm run build
+# build : interface React (dist/) ; build:console : CSS et polices de la console -> /backend/public.
+RUN mkdir -p /backend/public && npm run build && npm run build:console
 
 # ---------- Stage 2 : dépendances Composer ----------
 FROM composer:2 AS vendor
@@ -46,6 +49,8 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # L'interface construite est copiée dans public/ : index.html à la racine, fichiers hachés dans /assets.
 COPY --from=frontend /frontend/dist/ ./public/
+COPY --from=frontend /backend/public/console.css ./public/console.css
+COPY --from=frontend /backend/public/files ./public/files
 
 RUN composer dump-autoload --optimize --no-dev --no-scripts \
     && mkdir -p storage/framework/{cache,sessions,views} storage/logs bootstrap/cache \

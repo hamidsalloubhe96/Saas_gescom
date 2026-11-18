@@ -1,0 +1,124 @@
+/* Jetons de design GestCom partagés par l'application et la console (teal #20847D, clair/sombre). */
+@theme {
+  --font-sans: "Nunito Sans Variable", ui-sans-serif, system-ui, "Segoe UI", sans-serif;
+  --font-display: "Rubik Variable", ui-sans-serif, system-ui, sans-serif;
+
+  --color-brand-50: #eef9f8;
+  --color-brand-100: #d3f0ed;
+  --color-brand-200: #a9e1dc;
+  --color-brand-300: #74cbc4;
+  --color-brand-400: #43b0a9;
+  --color-brand-500: #2a9690;
+  --color-brand-600: #20847d;
+  --color-brand-700: #1b6b66;
+  --color-brand-800: #195753;
+  --color-brand-900: #164846;
+  --color-brand-950: #0b2b2a;
+
+  --breakpoint-xs: 30rem;
+}
+
+:root {
+  --bg: #f3f7f7;
+  --surface: #ffffff;
+  --text: #10282a;
+  --muted: #5b7172;
+  --border: #dde7e7;
+  --accent: #20847d;
+  --accent-hover: #1b6b66;
+  --accent-soft: #e6f5f3;
+  --on-accent: #ffffff;
+  --side: #0f2a2c;
+  --side-text: #bcd3d3;
+  --side-hover: #19393b;
+  --danger: #b42318;
+  --danger-soft: #fdecea;
+  --ok: #17692f;
+  --ok-soft: #e3f6ea;
+  --warn: #8a5a00;
+  --warn-soft: #fff3d6;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0c1617;
+    --surface: #132123;
+    --text: #e5efef;
+    --muted: #8da6a7;
+    --border: #243739;
+    --accent: #3fbdb5;
+    --accent-hover: #62d0c9;
+    --accent-soft: #123a3b;
+    --on-accent: #062321;
+    --side: #081112;
+    --side-text: #9fbcbc;
+    --side-hover: #142628;
+    --danger: #ff8a80;
+    --danger-soft: #3a1f22;
+    --ok: #7fe3a1;
+    --ok-soft: #173a26;
+    --warn: #ffd27a;
+    --warn-soft: #3a2f12;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+    --bg: #0c1617;
+    --surface: #132123;
+    --text: #e5efef;
+    --muted: #8da6a7;
+    --border: #243739;
+    --accent: #3fbdb5;
+    --accent-hover: #62d0c9;
+    --accent-soft: #123a3b;
+    --on-accent: #062321;
+    --side: #081112;
+    --side-text: #9fbcbc;
+    --side-hover: #142628;
+    --danger: #ff8a80;
+    --danger-soft: #3a1f22;
+    --ok: #7fe3a1;
+    --ok-soft: #173a26;
+    --warn: #ffd27a;
+    --warn-soft: #3a2f12;
+    color-scheme: dark;
+  }
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-line: var(--border);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
+  --color-side: var(--side);
+  --color-side-ink: var(--side-text);
+  --color-side-hover: var(--side-hover);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { @apply min-h-screen bg-bg font-sans text-ink antialiased; }
+  h1, h2, h3 { @apply font-display text-ink; }
+  h1 { @apply text-2xl font-semibold leading-tight tracking-tight; }
+  h2 { @apply text-lg font-semibold leading-snug; }
+  h3 { @apply text-base font-semibold; }
+  a { @apply text-accent; }
+  button:not(:disabled), [role="button"]:not(:disabled), summary, select, label[for] { @apply cursor-pointer; }
+  :focus-visible { @apply outline-2 outline-offset-2 outline-accent; }
+  ::selection { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+  table { @apply w-full border-collapse text-sm; }
+  dialog { @apply m-auto; }
+}
+

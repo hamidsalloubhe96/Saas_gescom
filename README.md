@@ -59,6 +59,14 @@ cd backend && php artisan console:create-admin vous@exemple.com --name="Votre no
 - Droits dans `backend/config/console.php`. Anti-robot Cloudflare Turnstile optionnel : `TURNSTILE_SITE_KEY` / `TURNSTILE_SECRET_KEY`.
 - Tests : `cd backend && php artisan test` (SQLite en mémoire, ne touche pas à la base de développement).
 
+### Interface et styles (Tailwind CSS v4)
+
+Tout est stylé avec **Tailwind** : l'application React, la page vitrine et la console Blade partagent les mêmes jetons de design (`frontend/src/theme.css` : palette teal `#20847D`, polices Rubik et Nunito Sans auto-hébergées, mode clair/sombre).
+
+- **Application** : `frontend/src/tailwind.css` (composants) ; composants React réutilisables dans `frontend/src/components/ui` (`Button`, `IconButton`, `RowActions`, `Brand`) ; icônes SVG regroupées dans `components/ui/icons.js` (Lucide).
+- **Console** : `frontend/src/console.css` compile vers `backend/public/console.css` (`cd frontend && npm run build:console`, ou `npm run watch:console` en développement). Les icônes se posent avec `<x-icon name="edit" />` (liste dans `backend/resources/icons.json`, généré depuis Lucide).
+- Le Dockerfile exécute les deux builds ; `console.css` et les polices sont des fichiers générés (non versionnés).
+
 ### Points de vente (multi-magasins)
 
 Chaque entreprise a un **siège** et autant de **points de vente** que souhaité (menu « Points de vente »). Chaque point de vente a son stock, ses ventes, sa caisse (une caisse ouverte par point de vente) et ses prix locaux éventuels. Son stock vient du **siège par transferts** (demandé, expédié, reçu ; un écart de réception est signalé). Les achats fournisseurs, le catalogue et les utilisateurs restent au siège. Un utilisateur rattaché à un point de vente ne voit que celle-ci ; un utilisateur du siège choisit « Toutes » ou un point de vente (en-tête `X-Branch`). Le nombre de points de vente est limitable par forfait dans la console (vide = illimité).

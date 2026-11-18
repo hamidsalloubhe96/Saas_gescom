@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { AddIcon, RowActions } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Field from '../components/Field'
@@ -70,7 +71,7 @@ export default function Users() {
           <h1>Utilisateurs</h1>
           <p className="muted">{users.length} compte{users.length > 1 ? 's' : ''} · chaque rôle donne accès à une partie de l'application</p>
         </div>
-        <button className="btn btn-inline" onClick={() => openForm(null)}>+ Nouvel utilisateur</button>
+        <button className="btn btn-inline" onClick={() => openForm(null)}><AddIcon className="size-4" aria-hidden="true" /> Nouvel utilisateur</button>
       </header>
 
       {error && <div role="alert" className="alert">{error}</div>}
@@ -85,7 +86,7 @@ export default function Users() {
                 <td>{u.email}</td>
                 <td>{u.role_label}</td>
                 <td><span className={`pill ${u.is_active ? 'pill-on' : 'pill-off'}`}>{u.is_active ? 'Actif' : 'Désactivé'}</span></td>
-                <td className="actions"><button className="link-btn" onClick={() => openForm(u)}>Modifier</button></td>
+                <td className="actions"><RowActions name={u.name} onEdit={() => openForm(u)} /></td>
               </tr>
             ))}
             {loading && users.length === 0 && <tr><td colSpan="5" className="empty">Chargement…</td></tr>}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { AddIcon, RowActions } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Field from '../components/Field'
@@ -115,7 +116,7 @@ export default function Partners({ resource, title, singular, extra }) {
           <h1>{title}</h1>
           <p className="muted">{meta.total} {meta.total > 1 ? 'enregistrements' : 'enregistrement'}</p>
         </div>
-        {canManage && <button className="btn btn-inline" onClick={() => openForm(null)}>+ Nouveau {singular}</button>}
+        {canManage && <button className="btn btn-inline" onClick={() => openForm(null)}><AddIcon className="size-4" aria-hidden="true" /> Nouveau {singular}</button>}
       </header>
 
       <div className="toolbar">
@@ -154,8 +155,7 @@ export default function Partners({ resource, title, singular, extra }) {
                   </span>
                 </td>
                 <td className="actions">
-                  {canManage && <button className="link-btn" onClick={() => openForm(r)}>Modifier</button>}
-                  {canManage && <button className="link-btn danger" onClick={() => remove(r)}>Supprimer</button>}
+                  {canManage && <RowActions name={r.name} onEdit={() => openForm(r)} onDelete={() => remove(r)} />}
                 </td>
               </tr>
             ))}

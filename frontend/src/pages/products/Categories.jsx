@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { DeleteIcon, IconButton } from '../../components/ui'
 import api, { parseError } from '../../api'
 
 export default function Categories({ categories, onChanged, onClose }) {
@@ -48,7 +49,7 @@ export default function Categories({ categories, onChanged, onClose }) {
         {categories.map((c) => (
           <li key={c.id}>
             <span>{c.name} <span className="muted small">({c.products_count})</span></span>
-            <button className="link-btn danger" onClick={() => remove(c)}>Supprimer</button>
+            <IconButton icon={DeleteIcon} tone="danger" label={`Supprimer la catégorie : ${c.name}`} onClick={() => remove(c)} />
           </li>
         ))}
         {categories.length === 0 && <li className="muted">Aucune catégorie.</li>}

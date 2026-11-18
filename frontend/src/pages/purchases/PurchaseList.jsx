@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { AddIcon } from '../../components/ui'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
 import PurchasePill from '../../components/PurchasePill'
@@ -49,7 +50,7 @@ export default function PurchaseList() {
           <h1>Achats</h1>
           <p className="muted">{meta.total} {meta.total > 1 ? 'commandes' : 'commande'} fournisseur</p>
         </div>
-        {can('purchases.manage') && <Link to="/achats/nouveau" className="btn btn-inline btn-link">+ Nouvelle commande</Link>}
+        {can('purchases.manage') && <Link to="/achats/nouveau" className="btn btn-inline btn-link"><AddIcon className="size-4" aria-hidden="true" /> Nouvelle commande</Link>}
       </header>
 
       <div className="toolbar">

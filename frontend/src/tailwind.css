@@ -1,0 +1,288 @@
+@import "@fontsource-variable/rubik";
+@import "@fontsource-variable/nunito-sans";
+@import "tailwindcss";
+@import "./theme.css";
+
+@layer components {
+  /* ---------- Texte ---------- */
+  .muted { @apply mt-1 text-muted; }
+  .small { @apply m-0 text-xs; }
+  .num { @apply font-display tabular-nums; }
+  .empty { @apply px-4 py-10 text-center text-muted; }
+  .splash { @apply grid min-h-screen place-items-center text-muted; }
+
+  /* ---------- Boutons ---------- */
+  .btn {
+    @apply inline-flex min-h-10 w-full items-center justify-center gap-2 rounded-lg border border-transparent bg-accent px-4 py-2 text-sm font-semibold text-on-accent transition-colors duration-150 hover:bg-accent-hover disabled:cursor-progress disabled:opacity-60;
+  }
+  .btn-inline { @apply w-auto whitespace-nowrap; }
+  .btn-secondary { @apply border-line bg-surface text-ink hover:bg-accent-soft; }
+  .btn-danger { @apply border-danger bg-transparent text-danger hover:bg-danger-soft; }
+  .btn-ghost { @apply border-white/15 bg-transparent text-side-ink hover:bg-side-hover; }
+  .btn-link { @apply inline-flex w-auto no-underline; }
+  .btn-pay { @apply min-h-12 bg-ok text-base text-white hover:bg-ok/90; }
+  .link-btn { @apply inline-flex items-center gap-1 rounded-md border-0 bg-transparent px-1.5 py-0.5 text-sm text-accent transition-colors hover:underline; }
+  .link-btn.danger { @apply text-danger; }
+  .auth-footer { @apply mt-5 text-center text-sm text-muted; }
+  .icon-btn { @apply inline-flex size-10 items-center justify-center rounded-lg text-muted transition-colors duration-150 hover:bg-accent-soft hover:text-accent sm:size-9; }
+
+  /* ---------- Formulaires ---------- */
+  .field { @apply mb-0.5 flex-1; }
+  .field label { @apply mb-1.5 block text-sm font-semibold; }
+  .field input, .field select, .field textarea,
+  .toolbar input, .toolbar select, .inline-form input, .pay-row select, .pay-row input, .pos-search {
+    @apply w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2.5 text-ink transition-shadow duration-150 placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/25;
+  }
+  .field textarea { @apply resize-y; }
+  .field input[aria-invalid='true'] { @apply border-danger; }
+  .field input[type='checkbox'] { @apply size-4 w-auto accent-[var(--accent)]; }
+  .field-error, .field-hint { @apply mb-1.5 mt-1 min-h-[1.1em] text-xs; }
+  .field-error { @apply text-danger; }
+  .field-hint { @apply text-muted; }
+  .row { @apply flex flex-col gap-0 sm:flex-row sm:gap-3; }
+  .check { @apply mb-4 mt-1 flex items-center gap-2 text-sm; }
+  .check input { @apply size-4 accent-[var(--accent)]; }
+  .toolbar { @apply mb-4 flex flex-wrap gap-3; }
+  .toolbar input { @apply min-w-[220px] flex-1; }
+  .toolbar select { @apply w-auto min-w-44; }
+  .toolbar-check { @apply m-0 self-center whitespace-nowrap; }
+  .inline-form { @apply mb-4 flex gap-2.5; }
+  .inline-form input { @apply flex-1; }
+  .segmented { @apply mb-4 flex overflow-hidden rounded-lg border border-line; }
+  .segmented button { @apply flex-1 bg-bg p-2.5 text-ink transition-colors hover:bg-accent-soft; }
+  .segmented button + button { @apply border-l border-line; }
+  .segmented button.on { @apply bg-accent font-semibold text-on-accent; }
+
+  /* ---------- Retours ---------- */
+  .alert { @apply mb-4 rounded-lg bg-danger-soft px-3.5 py-2.5 text-sm text-danger; }
+  .alert-ok { @apply bg-ok-soft text-ok; }
+  .alert-list { @apply m-0 list-disc pl-4; }
+
+  /* ---------- En-têtes de page ---------- */
+  .page-head { @apply mb-6; }
+  .page-head-row { @apply flex flex-wrap items-start justify-between gap-4; }
+  .head-actions { @apply flex flex-wrap gap-2.5; }
+  .head-actions.wrap { @apply justify-end; }
+  .back { @apply mb-3 inline-flex items-center gap-1 text-sm no-underline hover:underline; }
+
+  /* ---------- Cartes, panneaux ---------- */
+  .card { @apply flex flex-col gap-1 rounded-xl border border-line bg-surface p-5 text-inherit no-underline transition-colors duration-150 hover:border-accent; }
+  .card h2 { @apply text-base; }
+  .cards { @apply mb-4 grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3; }
+  .cards .card { @apply px-4 py-3; }
+  .cards .card p { @apply m-0 mb-1; }
+  .cards .card strong { @apply font-display text-xl; }
+  .panel { @apply mb-4 rounded-xl border border-line bg-surface p-5; }
+  .panel h2 { @apply mb-3 text-base; }
+  .panel-head { @apply mb-3 flex items-baseline justify-between gap-4; }
+  .panel-head h2 { @apply m-0; }
+  .badge { @apply mt-3 self-start rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent; }
+  .grid { @apply grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-4; }
+
+  /* ---------- Tableaux ---------- */
+  .table-wrap { @apply overflow-x-auto rounded-xl border border-line bg-surface; }
+  .table-wrap.flat { @apply border-0 bg-transparent; }
+  th { @apply px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-muted; }
+  td { @apply px-4 py-3 align-top; }
+  th, td { @apply border-b border-line; }
+  tbody tr:last-child td { @apply border-b-0; }
+  tbody tr { @apply transition-colors duration-150 hover:bg-accent-soft/60; }
+  th.num, td.num { @apply whitespace-nowrap text-right; }
+  th.center, td.center { @apply text-center; }
+  .actions { @apply whitespace-nowrap text-right; }
+  .row-actions { @apply whitespace-nowrap text-right; }
+  .row-link { @apply cursor-pointer; }
+  .pager { @apply mt-4 flex items-center justify-center gap-4 text-muted; }
+  .pager button { @apply inline-flex items-center gap-1 rounded-lg border border-line bg-surface px-3.5 py-2 text-ink transition-colors hover:bg-accent-soft disabled:cursor-not-allowed disabled:opacity-45; }
+
+  /* ---------- Pastilles d'état (la couleur n'est jamais seule : le texte porte le sens) ---------- */
+  .pill { @apply inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold; }
+  .pill-on, .badge-on { @apply bg-ok-soft text-ok; }
+  .pill-off { @apply bg-line text-muted; }
+  .pill-info { @apply bg-accent-soft text-accent; }
+  .pill-warn { @apply bg-warn-soft text-warn; }
+  .pill-bad { @apply bg-danger-soft text-danger; }
+  .stock-low { @apply font-bold text-danger; }
+  .qty-pos { @apply font-semibold text-ok; }
+  .qty-neg { @apply font-semibold text-danger; }
+
+  /* ---------- Fenêtres ---------- */
+  .modal { @apply w-[min(560px,94vw)] rounded-2xl border border-line bg-surface p-6 text-ink shadow-2xl; }
+  .modal::backdrop { background: rgba(8, 20, 22, 0.55); backdrop-filter: blur(2px); }
+  .modal h2 { @apply mb-5; }
+  .modal-wide { @apply w-[min(760px,95vw)]; }
+  .modal-actions { @apply flex justify-end gap-3; }
+  .modal-actions .btn { @apply w-auto min-w-28; }
+
+  /* ---------- Onglets ---------- */
+  .tabs { @apply mb-4 flex gap-1 overflow-x-auto border-b border-line; }
+  .tabs button { @apply -mb-px whitespace-nowrap border-b-2 border-transparent px-4 py-2.5 text-muted transition-colors hover:text-ink; }
+  .tabs button.on { @apply border-accent font-semibold text-accent; }
+
+  /* ---------- Listes ---------- */
+  .cat-list { @apply m-0 mb-5 max-h-72 list-none overflow-y-auto p-0; }
+  .cat-list li { @apply flex items-center justify-between border-b border-line px-1 py-2; }
+  .todo { @apply m-0 list-none p-0; }
+  .todo li { @apply flex justify-between gap-4 border-b border-line py-2.5 last:border-b-0; }
+  .todo a { @apply no-underline hover:underline; }
+  .matrix summary { @apply font-semibold; }
+  .matrix[open] summary { @apply mb-3; }
+  .matrix table { @apply text-[.85rem]; }
+  .forbidden { @apply mx-auto my-16 max-w-lg text-center; }
+  .forbidden h1 { @apply mb-2; }
+
+  /* ---------- Tableau de bord ---------- */
+  .kpis { @apply mb-4 grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3.5; }
+  .kpi { @apply flex flex-col gap-0.5 rounded-xl border border-line bg-surface px-4 py-4 text-inherit no-underline transition-colors duration-150; }
+  a.kpi { @apply hover:border-accent; }
+  .kpi-label { @apply text-xs font-semibold text-muted; }
+  .kpi-value { @apply font-display text-[1.7rem] font-semibold leading-tight tabular-nums; }
+  .kpi-sub { @apply text-xs text-muted; }
+  .tone-warn { @apply text-danger; }
+  .delta-up { @apply font-semibold text-ok; }
+  .delta-down { @apply font-semibold text-danger; }
+  .dash-cols { @apply grid grid-cols-[repeat(auto-fit,minmax(min(340px,100%),1fr))] gap-4; }
+  .chart { @apply block h-auto w-full; }
+  .chart-grid { stroke: var(--border); stroke-width: 1; }
+  .chart-axis { fill: var(--muted); font-size: 11px; }
+  .chart-bar { fill: var(--accent); }
+  .chart-bar:hover { opacity: 0.75; }
+  .chart-empty { @apply py-8 text-center; }
+
+  /* ---------- Devis, factures, documents ---------- */
+  .lines td, .lines th { @apply px-1 py-1.5; }
+  .lines select, .lines input { @apply w-full rounded-md border border-line bg-surface px-2 py-2; }
+  table.lines input.num { @apply min-w-[72px] text-right; }
+  table.lines.view td, table.lines.view th { @apply px-2 py-2.5; }
+  table.lines.view { @apply mb-2; }
+  .totals { @apply ml-auto mt-5 w-[min(320px,100%)]; }
+  .totals div { @apply flex justify-between py-1; }
+  .totals dt { @apply text-muted; }
+  .totals dd { @apply m-0 tabular-nums; }
+  .totals .grand { @apply mt-1 border-t border-line pt-2 text-[1.05rem] font-bold; }
+  .totals .grand dt { @apply text-ink; }
+  .totals .change { @apply text-ok; }
+  .form-actions { @apply mb-8 flex justify-end gap-3; }
+  .pay-form { @apply mt-4 grid grid-cols-[repeat(auto-fit,minmax(150px,1fr))] items-end gap-3; }
+  .pay-btn { @apply mb-[1.35rem]; }
+  .sheet { @apply mb-4 rounded-xl border border-line bg-surface p-5 sm:p-8; }
+  .sheet-head { @apply mb-6 flex flex-wrap justify-between gap-4; }
+  .sheet-title { @apply text-[1.4rem] tracking-widest; }
+  .sheet-number { @apply mt-1 text-lg text-muted; }
+  .sheet-company { @apply mb-3 text-lg font-bold; }
+  .sheet-meta div { @apply flex justify-between gap-4; }
+  .sheet-meta dt { @apply text-muted; }
+  .sheet-meta dd { @apply m-0 font-semibold; }
+  .sheet-party { @apply mb-6 leading-normal; }
+  .sheet-notes { @apply mt-6 whitespace-pre-wrap text-sm; }
+  .print-only { @apply hidden; }
+
+  /* ---------- Caisse ---------- */
+  .pos { @apply grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_380px]; }
+  .pos-search { @apply mb-3 rounded-xl px-4 py-3.5 text-[1.05rem]; }
+  .pos-notice { @apply mb-3; }
+  .pos-grid { @apply grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-2.5; }
+  .tile { @apply flex min-h-24 flex-col gap-1 rounded-xl border border-line bg-surface p-3 text-left text-ink transition-all duration-150; }
+  .tile:hover:not(.tile-out) { @apply -translate-y-0.5 border-accent; }
+  .tile-name { @apply font-semibold leading-tight; }
+  .tile-price { @apply mt-auto font-display font-bold text-accent; }
+  .tile-stock { @apply text-xs text-muted; }
+  .tile-out { @apply cursor-not-allowed opacity-50; }
+  .pos-cart { @apply flex flex-col gap-2 rounded-xl border border-line bg-surface p-4 lg:sticky lg:top-4; }
+  .pos-cart h2 { @apply text-base; }
+  .cart-lines { @apply max-h-[40vh] min-h-28 overflow-y-auto; }
+  .empty-cart { @apply py-8 text-center; }
+  .cart-line { @apply grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 border-b border-line py-2; }
+  .cart-name { @apply flex min-w-0 flex-col; }
+  .cart-name strong { @apply truncate; }
+  .cart-qty { @apply flex items-center; }
+  .cart-qty button { @apply h-8 w-8 border border-line bg-bg text-lg text-ink transition-colors hover:bg-accent-soft; }
+  .cart-qty button:first-child { @apply rounded-l-md; }
+  .cart-qty button:last-child { @apply rounded-r-md; }
+  .cart-qty input { @apply h-8 w-14 border-x-0 border-y border-line bg-surface text-center; }
+  .cart-total { @apply min-w-16 text-right font-display font-semibold tabular-nums; }
+  .cart-actions { @apply mt-1 grid grid-cols-[auto_1fr] gap-2.5; }
+  .pay-total { @apply mb-4 flex justify-between font-display text-2xl; }
+  .pay-row { @apply mb-2 grid grid-cols-2 items-center gap-2 sm:grid-cols-[130px_1fr_auto_auto]; }
+  .open-register { @apply max-w-lg; }
+  .open-register .inline-form { @apply mb-1; }
+  .sum-list { @apply m-0 mb-4; }
+  .sum-list div { @apply flex justify-between border-b border-line py-1.5; }
+  .sum-list dt { @apply text-muted; }
+  .sum-list dd { @apply m-0 tabular-nums; }
+  .sum-list .grand { @apply border-b-0 font-bold; }
+  .sum-list .grand dt { @apply text-ink; }
+  .ticket-actions { @apply mb-4 flex flex-wrap gap-2.5; }
+  .receipt { @apply mx-auto mb-8 w-80 max-w-full rounded-md border border-dashed border-line bg-surface p-5 font-mono text-[.85rem]; }
+  .receipt hr { @apply my-2.5 border-0 border-t border-dashed border-line; }
+  .receipt-company { @apply mb-1.5 text-center text-lg; }
+  .receipt-center { @apply text-center; }
+  .receipt-void { @apply my-1.5 font-bold; }
+  .receipt-line { @apply flex justify-between gap-3 py-0.5; }
+  .receipt-total { @apply text-base font-bold; }
+
+  /* ---------- Bandeaux et annonces ---------- */
+  .support-banner { @apply sticky top-0 z-20 mb-4 flex items-center justify-between gap-4 rounded-lg border border-amber-400/60 bg-warn-soft px-3.5 py-2.5 text-sm text-warn; }
+  .plan-banner { @apply mb-4 flex flex-wrap items-center justify-between gap-4 rounded-lg border border-accent bg-accent-soft px-3.5 py-2.5 text-sm text-ink; }
+  .plan-banner .btn { @apply w-auto; }
+  .announcements { @apply mb-4 grid gap-2; }
+  .announcement { @apply flex items-start justify-between gap-4 rounded-lg border border-line bg-surface px-3.5 py-2.5; }
+  .announcement.level-info { @apply border-accent bg-accent-soft; }
+  .announcement.level-warning { @apply border-amber-400/60 bg-warn-soft text-warn; }
+  .announcement.level-update { @apply border-ok/40 bg-ok-soft text-ok; }
+
+  /* ---------- Abonnement ---------- */
+  .plan-grid { @apply grid grid-cols-[repeat(auto-fill,minmax(210px,1fr))] gap-3; }
+  .plan-card { @apply flex flex-col gap-1 rounded-xl border border-line bg-bg p-3.5 text-left text-ink transition-colors hover:border-accent; }
+  .plan-card.on { @apply border-accent ring-2 ring-accent/25; }
+  .plan-price { @apply font-display text-lg font-bold; }
+  .plan-price small { @apply text-xs font-normal text-muted; }
+  .usage { @apply mb-3; }
+  .usage-head { @apply mb-1 flex justify-between text-sm; }
+  .bar { @apply h-2 overflow-hidden rounded-full bg-line; }
+  .bar > span { @apply block h-full bg-accent transition-[width] duration-500; }
+  .bar.warn > span { @apply bg-amber-500; }
+  .bar.bad > span { @apply bg-danger; }
+
+  /* ---------- Avis, aide, légal ---------- */
+  .stars { @apply m-0 mb-3 border-0 p-0; }
+  .stars legend { @apply mb-1 p-0 text-sm font-semibold; }
+  .stars button { @apply border-0 bg-transparent px-0.5 text-3xl leading-none text-line transition-colors; }
+  .stars button.on { @apply text-amber-500; }
+  .legal { @apply mx-auto max-w-3xl px-5 pb-16 pt-8 leading-relaxed; }
+  .legal-nav { @apply mb-8 flex flex-wrap gap-4 text-sm; }
+  .legal-nav a.on { @apply font-bold text-ink no-underline; }
+  .legal h1 { @apply mb-1; }
+  .legal-foot { @apply mt-2 block text-xs; }
+  .link-btn-plain { @apply bg-transparent p-0 text-accent underline; }
+
+  /* ---------- Points de vente ---------- */
+  .branch-switch { @apply mb-2.5 grid gap-1; }
+  .branch-switch label { @apply text-xs text-side-ink; }
+  .branch-switch select { @apply w-full rounded-lg border border-white/15 bg-side-hover px-2 py-2 text-sm text-white; }
+  .branch-chip { @apply mb-2.5 rounded-md bg-side-hover px-2.5 py-1.5 text-sm font-semibold text-white; }
+}
+
+/* ---------- Animations (une seule : l'entrée des pages ; tout s'arrête si l'utilisateur préfère moins de mouvement) ---------- */
+@media (prefers-reduced-motion: no-preference) {
+  @keyframes gc-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  @keyframes gc-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes gc-pop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
+  .page-enter { animation: gc-fade-up 0.3s ease both; }
+  .plan-banner, .support-banner, .alert { animation: gc-fade-up 0.25s ease both; }
+  dialog.modal[open] { animation: gc-pop 0.2s ease both; }
+  dialog.modal[open]::backdrop { animation: gc-fade 0.2s ease both; }
+  .btn:not(:disabled):active { transform: scale(0.985); }
+}
+
+/* ---------- Impression : factures, tickets ---------- */
+@media print {
+  :root { --bg: #fff; --surface: #fff; --text: #000; --muted: #444; --border: #bbb; }
+  body { background: #fff; }
+  .no-print, .toolbar, .pager, .plan-banner, [data-app-nav] { display: none !important; }
+  .print-only { display: block; }
+  .sheet { border: 0; padding: 0; }
+  .pill { border: 1px solid #999; background: none; color: #000; }
+  .receipt { width: 80mm; border: 0; margin: 0 auto; font-size: 11px; padding: 0; }
+  .ticket-actions { display: none; }
+}

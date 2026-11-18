@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { AddIcon, IconButton, RowActions, ToggleIcon } from '../components/ui'
 import api, { parseError, storage } from '../api'
 import Field from '../components/Field'
 import Modal from '../components/Modal'
@@ -61,7 +62,7 @@ export default function Branches() {
     <>
       <header className="page-head page-head-row">
         <div><h1>Points de vente</h1><p className="muted">Ventes, stock et caisse de chaque point de vente. Le stock des points de vente vient du siège par transferts.</p></div>
-        <button className="btn btn-inline" onClick={() => open(null)}>+ Nouveau point de vente</button>
+        <button className="btn btn-inline" onClick={() => open(null)}><AddIcon className="size-4" aria-hidden="true" /> Nouveau point de vente</button>
       </header>
       {error && <div role="alert" className="alert">{error}</div>}
 
@@ -87,9 +88,8 @@ export default function Branches() {
                 <td>{b.register_open ? <span className="pill pill-on">Ouverte</span> : <span className="muted">Fermée</span>}</td>
                 <td>{b.pending_transfers > 0 ? `${b.pending_transfers} en cours` : '—'}</td>
                 <td className="row-actions">
-                  <button className="link-btn" onClick={() => view(b)}>Voir</button>
-                  <button className="link-btn" onClick={() => open(b)}>Modifier</button>
-                  {!b.is_main && <button className="link-btn" onClick={() => toggle(b)}>{b.is_active ? 'Désactiver' : 'Réactiver'}</button>}
+                  <RowActions name={b.name} onView={() => view(b)} onEdit={() => open(b)}
+                    extra={!b.is_main && <IconButton icon={ToggleIcon} tone={b.is_active ? 'danger' : 'success'} label={`${b.is_active ? 'Désactiver' : 'Réactiver'} : ${b.name}`} onClick={() => toggle(b)} />} />
                 </td>
               </tr>
             ))}

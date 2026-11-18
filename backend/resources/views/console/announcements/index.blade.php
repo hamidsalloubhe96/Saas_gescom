@@ -32,7 +32,7 @@
                     <td><span class="pill {{ $a->is_active ? 'pill-ok' : '' }}">{{ $a->is_active ? 'Active' : 'Inactive' }}</span></td>
                     <td style="white-space:nowrap">
                         <form method="POST" action="{{ route('console.announcements.toggle', $a) }}" style="display:inline">@csrf @method('PATCH')<button class="btn btn-secondary btn-sm">{{ $a->is_active ? 'Désactiver' : 'Activer' }}</button></form>
-                        <form method="POST" action="{{ route('console.announcements.destroy', $a) }}" style="display:inline" onsubmit="return confirm('Supprimer cette annonce ?')">@csrf @method('DELETE')<button class="btn btn-danger btn-sm">Supprimer</button></form>
+                        <form method="POST" action="{{ route('console.announcements.destroy', $a) }}" style="display:inline" onsubmit="return confirm('Supprimer cette annonce ?')">@csrf @method('DELETE')<button class="btn btn-danger btn-sm"><x-icon name="delete" class="size-4" />Supprimer</button></form>
                     </td>
                 </tr>
             @empty

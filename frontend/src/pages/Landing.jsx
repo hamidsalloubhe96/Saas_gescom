@@ -1,6 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate } from 'react-router-dom'
 import api, { storage } from '../api'
+import { useAuth } from '../auth'
+import {
+  AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
+  PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
+} from '../components/ui'
+import { cn } from '../lib/cn'
+import { fmtMoney } from '../lib/format'
 
 // La console est servie par Laravel (hors de l'application React) : lien absolu vers l'origine de l'API.
 const consoleUrl = () => {
@@ -9,21 +16,18 @@ const consoleUrl = () => {
 const FAQ_VISIBLE = 5 // questions affichées avant « Voir toutes »
 const MIN_REVIEWS = 3 // les avis ne s'affichent qu'à partir de trois avis publiés
 const telHref = (n) => `tel:${n.replace(/[^\d+]/g, '')}`
-import { useAuth } from '../auth'
-import { fmtMoney } from '../lib/format'
-import './landing.css'
 
 const NAV = [['accueil', 'Accueil'], ['fonctionnalites', 'Fonctionnalités'], ['apercu', 'Aperçu'], ['a-propos', 'À propos'], ['tarifs', 'Tarifs'], ['faq', 'FAQ'], ['contact', 'Contact']]
 
 const FEATURES = [
-  ['Clients et fournisseurs', 'Fiches complètes, historique des échanges et suivi des soldes.'],
-  ['Produits et stock', 'Catalogue, mouvements de stock et alertes de seuil.'],
-  ['Devis et factures', 'Du devis à la facture, avec paiements partiels et relances.'],
-  ['Achats', 'Commandes fournisseurs, réceptions et dettes à régler.'],
-  ['Caisse', 'Ventes au comptoir, tickets et clôture de caisse.'],
-  ['Droits et rôles', 'Gérant, vendeur, caissier, magasinier : chacun voit ce qui le concerne.'],
-  ['Plusieurs points de vente', 'Ouvrez autant de points de vente que vous voulez : chacun a son stock, sa caisse et ses ventes, réapprovisionnés depuis le siège.'],
-  ['Tableau de bord', 'Ventes, impayés et stock bas d’un coup d’œil, par point de vente ou pour toute l’entreprise.'],
+  [CustomersIcon, 'Clients et fournisseurs', 'Fiches complètes, historique des échanges et suivi des soldes.'],
+  [ProductsIcon, 'Produits et stock', 'Catalogue, mouvements de stock et alertes de seuil.'],
+  [InvoicesIcon, 'Devis et factures', 'Du devis à la facture, avec paiements partiels et relances.'],
+  [PurchasesIcon, 'Achats', 'Commandes fournisseurs, réceptions et dettes à régler.'],
+  [PosIcon, 'Caisse', 'Ventes au comptoir, tickets et clôture de caisse.'],
+  [UsersIcon, 'Droits et rôles', 'Gérant, vendeur, caissier, magasinier : chacun voit ce qui le concerne.'],
+  [BranchesIcon, 'Plusieurs points de vente', 'Ouvrez autant de points de vente que vous voulez : chacun a son stock, sa caisse et ses ventes, réapprovisionnés depuis le siège.'],
+  [DashboardIcon, 'Tableau de bord', 'Ventes, impayés et stock bas d’un coup d’œil, par point de vente ou pour toute l’entreprise.'],
 ]
 
 const FAQ = [
@@ -43,19 +47,43 @@ const FAQ = [
   ['Et si j’ai besoin d’aide ?', 'Écrivez-nous depuis la page « Support » de l’application : vos échanges sont suivis dans un ticket et nous vous répondons directement.'],
 ]
 
-const Icon = ({ d, size = 22 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>
-)
-const ICONS = {
-  search: 'M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-4.3-4.3',
-  user: 'M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21a8 8 0 0 1 16 0',
-  shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zM9 12l2 2 4-4',
-  bolt: 'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
-  headset: 'M4 14v-2a8 8 0 0 1 16 0v2M4 14h3v5H4zM17 14h3v5h-3zM17 19a3 3 0 0 1-3 2h-2',
-  phone: 'M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z',
-  arrow: 'M5 12h14M13 6l6 6-6 6',
-  play: 'M10 8l6 4-6 4V8zM12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18z',
+// Boutons de la vitrine (mêmes variantes que l'application, en plus grand).
+const btn = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-semibold no-underline transition-colors duration-150 motion-safe:active:scale-[0.985]'
+const btnSolid = cn(btn, 'border-transparent bg-brand-600 text-white hover:bg-brand-700')
+const btnOutline = cn(btn, 'border-brand-600 bg-transparent text-brand-700 hover:bg-brand-50')
+const btnWhite = cn(btn, 'min-h-12 border-transparent bg-white px-6 text-brand-800 hover:bg-brand-50')
+const btnLine = cn(btn, 'min-h-12 border-white/50 bg-transparent px-6 text-white hover:bg-white/10')
+
+/** Apparition douce quand le bloc entre à l'écran (une seule fois, jamais si l'utilisateur préfère moins de mouvement). */
+function Reveal({ children, className, delay = 0 }) {
+  const ref = useRef(null)
+  const [seen, setSeen] = useState(() => typeof IntersectionObserver === 'undefined')
+  useEffect(() => {
+    const el = ref.current
+    if (!el || seen) return undefined
+    const io = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setSeen(true); io.disconnect() } }, { threshold: 0.12 })
+    io.observe(el)
+    return () => io.disconnect()
+  }, [seen])
+  return (
+    <div ref={ref} style={{ transitionDelay: `${delay}ms` }}
+      className={cn('motion-safe:transition-all motion-safe:duration-500 motion-safe:ease-out', !seen && 'motion-safe:translate-y-4 motion-safe:opacity-0', className)}>
+      {children}
+    </div>
+  )
 }
+
+const Section = ({ id, alt, children, className }) => (
+  <section id={id} className={cn('scroll-mt-16 py-16 sm:py-20', alt ? 'bg-brand-50 dark:bg-surface' : 'bg-surface', className)}>
+    <div className="mx-auto w-full max-w-6xl px-5">{children}</div>
+  </section>
+)
+const Heading = ({ title, sub }) => (
+  <div className="mx-auto mb-10 max-w-2xl text-center">
+    <h2 className="text-3xl font-semibold">{title}</h2>
+    {sub && <p className="mt-3 text-muted">{sub}</p>}
+  </div>
+)
 
 function CompanySearch({ onClose }) {
   const navigate = useNavigate()
@@ -84,20 +112,22 @@ function CompanySearch({ onClose }) {
   }
 
   return (
-    <div className="lp-overlay" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <div className="lp-dialog" role="dialog" aria-modal="true" aria-labelledby="lp-find-title">
-        <h2 id="lp-find-title">Rechercher mon entreprise</h2>
-        <p className="lp-muted">Saisissez le nom ou l'identifiant de votre entreprise.</p>
-        <input ref={input} className="lp-input" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex. Boutique Diallo" aria-label="Nom ou identifiant de l'entreprise" />
-        <div role="status" aria-live="polite" className="lp-results">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/55 px-4 py-[8vh]" onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="find-title" className="grid w-full max-w-md gap-3 rounded-2xl bg-surface p-6 shadow-2xl motion-safe:animate-[gc-pop_.2s_ease_both]">
+        <h2 id="find-title" className="text-xl">Rechercher mon entreprise</h2>
+        <p className="text-sm text-muted">Saisissez le nom ou l’identifiant de votre entreprise.</p>
+        <input ref={input} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex. Boutique Diallo" aria-label="Nom ou identifiant de l’entreprise"
+          className="w-full rounded-lg border border-line bg-surface px-3 py-2.5 focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/25" />
+        <div role="status" aria-live="polite" className="grid min-h-6 gap-1.5">
           {results?.map((c) => (
-            <button key={c.slug} type="button" className="lp-result" onClick={() => pick(c)}>
-              <strong>{c.name}</strong><span>{c.slug}</span>
+            <button key={c.slug} type="button" onClick={() => pick(c)}
+              className="flex justify-between gap-4 rounded-lg border border-line px-3.5 py-3 text-left transition-colors hover:border-accent hover:bg-accent-soft">
+              <strong>{c.name}</strong><span className="text-muted">{c.slug}</span>
             </button>
           ))}
-          {results && results.length === 0 && <p className="lp-muted">Aucune entreprise trouvée. <Link to="/register">Créer mon entreprise</Link></p>}
+          {results && results.length === 0 && <p className="text-sm text-muted">Aucune entreprise trouvée. <Link to="/register">Créer mon entreprise</Link></p>}
         </div>
-        <button type="button" className="lp-btn lp-btn-ghost lp-close" onClick={onClose}>Fermer</button>
+        <button type="button" onClick={onClose} className={cn(btn, 'justify-self-end border-line text-ink hover:bg-accent-soft')}>Fermer</button>
       </div>
     </div>
   )
@@ -112,7 +142,6 @@ export default function Landing() {
   const [scrolled, setScrolled] = useState(false)
   const [faqAll, setFaqAll] = useState(false) // FAQ repliée au-delà de 5 questions
   const [callOpen, setCallOpen] = useState(false)
-  const root = useRef(null)
 
   useEffect(() => {
     api.get('/public/config').then(({ data }) => setConfig(data)).catch(() => {})
@@ -120,7 +149,6 @@ export default function Landing() {
     api.get('/public/reviews').then(({ data }) => setReviews(data)).catch(() => {})
   }, [])
 
-  // Ombre de l'en-tête au défilement + apparition progressive des blocs (sans effet si l'utilisateur préfère moins de mouvement).
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
     onScroll()
@@ -132,243 +160,273 @@ export default function Landing() {
   useEffect(() => {
     if (!callOpen) return undefined
     const onKey = (e) => e.key === 'Escape' && setCallOpen(false)
-    const onDown = (e) => { if (!e.target.closest?.('.lp-call-wrap')) setCallOpen(false) }
+    const onDown = (e) => { if (!e.target.closest?.('[data-call]')) setCallOpen(false) }
     window.addEventListener('keydown', onKey)
     window.addEventListener('mousedown', onDown)
     return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mousedown', onDown) }
   }, [callOpen])
-
-  useEffect(() => {
-    const el = root.current
-    if (!el || window.matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return undefined
-    const targets = [...el.querySelectorAll('.lp-sec h2, .lp-sub, .lp-card, .lp-faq, .lp-points li, .lp-about > div, .lp-center > *')]
-    targets.forEach((t) => {
-      t.classList.add('lp-reveal')
-      const index = [...t.parentElement.children].indexOf(t)
-      t.style.transitionDelay = `${Math.min(index, 5) * 70}ms`
-    })
-    el.classList.add('lp-anim')
-    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-      if (e.isIntersecting) { e.target.classList.add('is-in'); io.unobserve(e.target) }
-    }), { threshold: 0.12 })
-    targets.forEach((t) => io.observe(t))
-    return () => io.disconnect()
-  }, [plans.length, reviews.length, config, faqAll])
 
   if (user) return <Navigate to="/" replace />
 
   const trial = config?.trial_days ?? 14
   const open = config?.signup_open !== false
   const phones = (config?.contact_phone ?? '').split('/').map((p) => p.trim()).filter(Boolean)
-  const phone = phones[0]
   const startLink = open ? '/register' : '/demande'
   const go = (id) => (e) => { e.preventDefault(); document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' }) }
+  const hasContact = phones.length > 0 || Boolean(config?.contact_email)
 
   return (
-    <div className="lp" ref={root}>
-      <header className={`lp-nav${scrolled ? ' scrolled' : ''}`}>
-        <div className="lp-wrap lp-nav-in">
-          <a href="#accueil" className="lp-brand" onClick={go('accueil')}><span className="lp-mark">G</span>GestCom</a>
-          <nav aria-label="Sections" className="lp-links">
-            {NAV.map(([id, label]) => <a key={id} href={`#${id}`} onClick={go(id)}>{label}</a>)}
+    <div className="bg-surface">
+      <header className={cn('sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur transition-shadow duration-200', scrolled && 'shadow-md')}>
+        <div className="mx-auto flex w-full max-w-6xl items-center gap-5 px-5 py-3">
+          <a href="#accueil" onClick={go('accueil')} className="no-underline"><Brand /></a>
+          <nav aria-label="Sections" className="mx-auto hidden gap-6 lg:flex">
+            {NAV.map(([id, label]) => (
+              <a key={id} href={`#${id}`} onClick={go(id)} className="text-[.95rem] text-ink no-underline transition-colors hover:text-accent">{label}</a>
+            ))}
           </nav>
-          <div className="lp-nav-actions">
-            <button type="button" className="lp-btn lp-btn-outline" onClick={() => setFinding(true)}><Icon d={ICONS.search} size={18} /> <span>Rechercher mon entreprise</span></button>
-            <Link to="/login" className="lp-btn lp-btn-solid"><Icon d={ICONS.user} size={18} /> Connexion</Link>
+          <div className="ml-auto flex gap-2.5 lg:ml-0">
+            <button type="button" onClick={() => setFinding(true)} className={cn(btnOutline, 'px-3 sm:px-5')}>
+              <SearchIcon className="size-[18px]" aria-hidden="true" /> <span className="hidden sm:inline">Rechercher mon entreprise</span><span className="sr-only sm:hidden">Rechercher mon entreprise</span>
+            </button>
+            <Link to="/login" className={btnSolid}><AccountIcon className="size-[18px]" aria-hidden="true" /> Connexion</Link>
           </div>
         </div>
       </header>
 
-      <section id="accueil" className="lp-hero">
-        <div className="lp-wrap lp-hero-in">
-          <div>
-            <span className="lp-badge"><i /> Gestion commerciale en ligne</span>
-            <h1>Donnez une nouvelle dimension à la <em>gestion de votre commerce.</em></h1>
-            <p className="lp-lead">Avec GestCom, profitez d'une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire.</p>
-            <div className="lp-cta">
-              <Link to={startLink} className="lp-btn lp-btn-white">{open ? 'Créer mon espace gratuitement' : 'Demander un accès'} <Icon d={ICONS.arrow} size={18} /></Link>
-              <a href="#apercu" className="lp-btn lp-btn-line" onClick={go('apercu')}><Icon d={ICONS.play} size={18} /> Découvrir la plateforme</a>
+      <section id="accueil" className="scroll-mt-16 bg-brand-900 text-white">
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-12 px-5 py-16 sm:py-24 lg:grid-cols-[1.05fr_1fr]">
+          <div className="motion-safe:animate-[gc-fade-up_.6s_ease_both]">
+            <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-sm">
+              <span className="size-2 rounded-full bg-emerald-400" aria-hidden="true" /> Gestion commerciale en ligne
+            </span>
+            <h1 className="mt-5 text-4xl leading-[1.1] text-white sm:text-5xl">Donnez une nouvelle dimension à la gestion de votre commerce.</h1>
+            <p className="mt-5 max-w-xl text-lg text-brand-100">
+              Avec GestCom, profitez d’une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire.
+            </p>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <Link to={startLink} className={btnWhite}>{open ? 'Créer mon espace gratuitement' : 'Demander un accès'} <ArrowRightIcon className="size-[18px]" aria-hidden="true" /></Link>
+              <a href="#apercu" onClick={go('apercu')} className={btnLine}><PlayIcon className="size-[18px]" aria-hidden="true" /> Découvrir la plateforme</a>
             </div>
-            <ul className="lp-trust">
-              <li><Icon d={ICONS.shield} /> <span>Essai gratuit<br />pendant {trial} jours</span></li>
-              <li><Icon d={ICONS.bolt} /> <span>Sans carte<br />bancaire</span></li>
-              <li><Icon d={ICONS.headset} /> <span>Assistance<br />réactive</span></li>
+            <ul className="mt-9 flex list-none flex-wrap gap-x-8 gap-y-4 p-0 text-sm">
+              {[[TrustIcon, `Essai gratuit pendant ${trial} jours`], [FastIcon, 'Sans carte bancaire'], [HeadsetIcon, 'Assistance réactive']].map(([Icon, text]) => (
+                <li key={text} className="flex max-w-[11rem] items-center gap-2.5 leading-snug"><Icon className="size-6 shrink-0 text-brand-300" aria-hidden="true" />{text}</li>
+              ))}
             </ul>
           </div>
-          <div className="lp-laptop" aria-hidden="true">
-            <div className="lp-screen">
-              <div className="lp-side"><b>Boutique Test</b><i /><i /><i /><i /><i /></div>
-              <div className="lp-main">
+
+          {/* Aperçu de l'application (illustration, pas une capture) */}
+          <div aria-hidden="true" className="mx-auto w-full max-w-lg motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both]">
+            <div className="grid grid-cols-[26%_1fr] overflow-hidden rounded-t-2xl border-[8px] border-brand-950 bg-bg text-ink">
+              <div className="grid content-start gap-2 bg-side p-3 text-xs text-white">
+                <b>Boutique Test</b>
+                {[...Array(5)].map((_, i) => <i key={i} className="block h-2 rounded bg-white/20" />)}
+              </div>
+              <div className="grid content-start gap-3 p-3.5 text-xs">
                 <b>Bonjour, voici votre journée</b>
-                <div className="lp-kpis">
-                  <div><small>Ventes du mois</small><strong>1 240 000</strong></div>
-                  <div><small>Impayés</small><strong>8 factures</strong></div>
-                  <div><small>Stock bas</small><strong>5 produits</strong></div>
+                <div className="grid grid-cols-3 gap-2">
+                  {[['Ventes du mois', '1 240 000'], ['Impayés', '8 factures'], ['Stock bas', '5 produits']].map(([l, v]) => (
+                    <div key={l} className="rounded-md bg-surface p-2"><small className="block text-[.62rem] text-muted">{l}</small><strong className="font-display text-[.8rem]">{v}</strong></div>
+                  ))}
                 </div>
-                <div className="lp-bars">{[35, 55, 45, 75, 60, 95].map((h, i) => <span key={i} style={{ height: `${h}%` }} />)}</div>
+                <div className="flex h-24 items-end gap-1.5 rounded-md bg-surface p-2">
+                  {[35, 55, 45, 75, 60, 95].map((h, i) => <span key={i} style={{ height: `${h}%` }} className={cn('flex-1 rounded-sm', i === 5 ? 'bg-brand-600' : 'bg-brand-200')} />)}
+                </div>
               </div>
             </div>
-            <div className="lp-base" />
+            <div className="mx-[-4%] h-3.5 rounded-b-3xl bg-brand-950/70" />
           </div>
         </div>
       </section>
 
-      <section id="fonctionnalites" className="lp-sec">
-        <div className="lp-wrap">
-          <h2>Tout ce qu'il faut pour vendre</h2>
-          <p className="lp-sub">Un seul espace pour toute votre équipe, du comptoir à la comptabilité.</p>
-          <div className="lp-grid3">
-            {FEATURES.map(([t, d]) => <article key={t} className="lp-card"><h3>{t}</h3><p>{d}</p></article>)}
-          </div>
+      <Section id="fonctionnalites">
+        <Heading title="Tout ce qu’il faut pour vendre" sub="Un seul espace pour toute votre équipe, du comptoir à la comptabilité." />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {FEATURES.map(([Icon, title, text], i) => (
+            <Reveal key={title} delay={(i % 4) * 60}>
+              <article className="h-full rounded-xl border border-line bg-surface p-5 transition-colors duration-200 hover:border-accent">
+                <span className="grid size-10 place-items-center rounded-lg bg-accent-soft text-accent"><Icon className="size-5" aria-hidden="true" /></span>
+                <h3 className="mt-4">{title}</h3>
+                <p className="mt-1.5 text-sm text-muted">{text}</p>
+              </article>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      <section id="apercu" className="lp-sec lp-alt">
-        <div className="lp-wrap">
-          <h2>Aperçu de la plateforme</h2>
-          <p className="lp-sub">Des écrans simples, pensés pour aller vite au quotidien.</p>
-          <div className="lp-grid3">
-            <article className="lp-card lp-shot" aria-label="Aperçu de la caisse">
-              <h3>Caisse</h3>
-              <div className="lp-mini"><span>Riz 25 kg</span><b>18 000</b></div><div className="lp-mini"><span>Huile 5 L</span><b>6 500</b></div><div className="lp-mini lp-total"><span>Total</span><b>24 500</b></div>
-            </article>
-            <article className="lp-card lp-shot" aria-label="Aperçu d'une facture">
-              <h3>Facture</h3>
-              <div className="lp-mini"><span>FAC-2026-0042</span><em className="lp-pill ok">Payée</em></div><div className="lp-mini"><span>FAC-2026-0043</span><em className="lp-pill warn">Partielle</em></div><div className="lp-mini"><span>FAC-2026-0044</span><em className="lp-pill bad">Impayée</em></div>
-            </article>
-            <article className="lp-card lp-shot" aria-label="Aperçu du stock">
-              <h3>Stock</h3>
-              <div className="lp-mini"><span>Sucre 1 kg</span><b>240</b></div><div className="lp-mini"><span>Savon</span><b>12</b><em className="lp-pill warn">Bas</em></div><div className="lp-mini"><span>Lait en poudre</span><b>96</b></div>
-            </article>
-          </div>
+      <Section id="apercu" alt>
+        <Heading title="Aperçu de la plateforme" sub="Des écrans simples, pensés pour aller vite au quotidien." />
+        <div className="grid gap-4 md:grid-cols-3">
+          {[
+            ['Caisse', [['Riz 25 kg', '18 000'], ['Huile 5 L', '6 500'], ['Total', '24 500', true]]],
+            ['Facture', [['FAC-2026-0042', 'Payée', 'ok'], ['FAC-2026-0043', 'Partielle', 'warn'], ['FAC-2026-0044', 'Impayée', 'bad']]],
+            ['Stock', [['Sucre 1 kg', '240'], ['Savon', '12', 'low'], ['Lait en poudre', '96']]],
+          ].map(([title, rows], i) => (
+            <Reveal key={title} delay={i * 80}>
+              <article aria-label={`Aperçu : ${title}`} className="h-full rounded-xl border border-line bg-surface p-5">
+                <h3 className="mb-3">{title}</h3>
+                <div className="grid gap-2">
+                  {rows.map(([a, b, tone]) => (
+                    <div key={a} className={cn('flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 text-sm', tone === true ? 'bg-accent-soft font-semibold' : 'bg-bg')}>
+                      <span>{a}</span>
+                      {['ok', 'warn', 'bad'].includes(tone)
+                        ? <span className={cn('pill', tone === 'ok' && 'pill-on', tone === 'warn' && 'pill-warn', tone === 'bad' && 'pill-bad')}>{tone === 'bad' && '✕ '}{b}</span>
+                        : <span className="flex items-center gap-2 font-display font-semibold tabular-nums">{b}{tone === 'low' && <span className="pill pill-warn">Bas</span>}</span>}
+                    </div>
+                  ))}
+                </div>
+              </article>
+            </Reveal>
+          ))}
         </div>
-      </section>
+      </Section>
 
-      <section id="a-propos" className="lp-sec">
-        <div className="lp-wrap lp-about">
-          <div>
-            <h2>À propos</h2>
-            <p>GestCom aide les commerces à remplacer cahiers et tableurs par un outil unique, fiable et accessible depuis n'importe quel appareil.</p>
-            <p>Chaque entreprise travaille dans son propre espace sécurisé : vos données restent les vôtres, isolées de celles des autres.</p>
-          </div>
-          <ul className="lp-points">
-            <li>Un espace de données dédié par entreprise</li>
-            <li>Droits d'accès adaptés à chaque rôle</li>
-            <li>Assistance par ticket directement dans l'application</li>
+      <Section id="a-propos">
+        <div className="grid items-center gap-10 lg:grid-cols-2">
+          <Reveal>
+            <h2 className="text-3xl font-semibold">À propos</h2>
+            <p className="mt-4 text-muted">GestCom aide les commerces à remplacer cahiers et tableurs par un outil unique, fiable et accessible depuis n’importe quel appareil.</p>
+            <p className="mt-3 text-muted">Chaque entreprise travaille dans son propre espace sécurisé : vos données restent les vôtres, isolées de celles des autres.</p>
+          </Reveal>
+          <ul className="m-0 grid list-none gap-3 p-0">
+            {['Un espace de données dédié par entreprise', 'Droits d’accès adaptés à chaque rôle', 'Assistance par ticket directement dans l’application'].map((t, i) => (
+              <Reveal key={t} delay={i * 80}>
+                <li className="rounded-lg border-l-4 border-accent bg-accent-soft px-4 py-3.5">{t}</li>
+              </Reveal>
+            ))}
           </ul>
         </div>
-      </section>
+      </Section>
 
-      <section id="tarifs" className="lp-sec lp-alt">
-        <div className="lp-wrap">
-          <h2>Tarifs</h2>
-          <p className="lp-sub">Essayez {trial} jours gratuitement, puis choisissez le forfait qui vous convient.</p>
-          <div className="lp-grid3">
-            {plans.map((p, i) => (
-              <article key={p.name} className={`lp-card lp-plan${i === 1 ? ' hot' : ''}`}>
-                {i === 1 && <span className="lp-tag">Populaire</span>}
+      <Section id="tarifs" alt>
+        <Heading title="Tarifs" sub={`Essayez ${trial} jours gratuitement, puis choisissez le forfait qui vous convient.`} />
+        <div className="grid gap-5 md:grid-cols-3">
+          {plans.map((p, i) => (
+            <Reveal key={p.name} delay={i * 80}>
+              <article className={cn('relative flex h-full flex-col gap-2 rounded-xl border bg-surface p-6', i === 1 ? 'border-2 border-accent' : 'border-line')}>
+                {i === 1 && <span className="absolute -top-3 right-4 rounded-full bg-accent px-3 py-0.5 text-xs font-bold text-on-accent">Populaire</span>}
                 <h3>{p.name}</h3>
-                <p className="lp-price">{fmtMoney(p.price).replace(',00', '')} <small>{p.currency} / {p.period_months === 1 ? 'mois' : `${p.period_months} mois`}</small></p>
-                <p className="lp-muted">{p.description}</p>
-                <ul>
+                <p className="font-display text-3xl font-semibold">{fmtMoney(p.price).replace(',00', '')} <small className="text-sm font-normal text-muted">{p.currency} / {p.period_months === 1 ? 'mois' : `${p.period_months} mois`}</small></p>
+                <p className="text-sm text-muted">{p.description}</p>
+                <ul className="my-2 grid list-disc gap-1 pl-5 text-sm marker:text-accent">
                   <li>{p.max_users ?? 'Illimité'} utilisateur{p.max_users === 1 ? '' : 's'}</li>
                   <li>{p.max_products ?? 'Illimité'} produits</li>
                   <li>{p.max_invoices_month ?? 'Illimité'} factures par mois</li>
                 </ul>
-                <Link to={startLink} className="lp-btn lp-btn-solid">Commencer l'essai</Link>
+                <Link to={startLink} className={cn(i === 1 ? btnSolid : btnOutline, 'mt-auto')}>Commencer l’essai</Link>
               </article>
-            ))}
-            {plans.length === 0 && <p className="lp-muted">Les tarifs seront bientôt disponibles.</p>}
-          </div>
+            </Reveal>
+          ))}
+          {plans.length === 0 && <p className="text-muted">Les tarifs seront bientôt disponibles.</p>}
         </div>
-      </section>
+      </Section>
 
       {reviews.length >= MIN_REVIEWS && (
-        <section id="avis" className="lp-sec">
-          <div className="lp-wrap">
-            <h2>Ils nous font confiance</h2>
-            <div className="lp-grid3">
-              {reviews.slice(0, 6).map((r, i) => (
-                <article key={i} className="lp-card">
-                  <p className="lp-stars" aria-label={`${r.rating} sur 5`}>{'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}</p>
-                  <p>{r.body}</p>
-                  <p className="lp-muted"><strong>{r.author_name}</strong> · {r.company}</p>
+        <Section id="avis">
+          <Heading title="Ils nous font confiance" />
+          <div className="grid gap-4 md:grid-cols-3">
+            {reviews.slice(0, 6).map((r, i) => (
+              <Reveal key={i} delay={(i % 3) * 80}>
+                <article className="h-full rounded-xl border border-line bg-surface p-5">
+                  <p className="flex gap-0.5 text-amber-500" role="img" aria-label={`${r.rating} sur 5`}>
+                    {[1, 2, 3, 4, 5].map((n) => <StarIcon key={n} className={cn('size-4', n <= r.rating ? 'fill-current' : 'text-line')} aria-hidden="true" />)}
+                  </p>
+                  <p className="mt-2">{r.body}</p>
+                  <p className="mt-3 text-sm text-muted"><strong className="text-ink">{r.author_name}</strong> · {r.company}</p>
                 </article>
-              ))}
-            </div>
+              </Reveal>
+            ))}
           </div>
-        </section>
+        </Section>
       )}
 
-      <section id="faq" className="lp-sec lp-alt">
-        <div className="lp-wrap lp-narrow">
-          <h2>Questions fréquentes</h2>
-          {(faqAll ? FAQ : FAQ.slice(0, FAQ_VISIBLE)).map(([q, a], i) => <details key={q} className="lp-faq" open={i === 0 ? true : undefined}><summary>{q}</summary><p>{a}</p></details>)}
+      <Section id="faq" alt>
+        <Heading title="Questions fréquentes" />
+        <div className="mx-auto grid max-w-3xl gap-3">
+          {(faqAll ? FAQ : FAQ.slice(0, FAQ_VISIBLE)).map(([q, a], i) => (
+            <details key={q} open={i === 0 ? true : undefined} className="group rounded-xl border border-line bg-surface transition-colors duration-150 open:border-accent">
+              <summary className="flex list-none items-center justify-between gap-4 px-5 py-4 font-semibold [&::-webkit-details-marker]:hidden">
+                {q}
+                <ChevronDownIcon className="size-5 shrink-0 text-accent transition-transform duration-200 group-open:rotate-180" aria-hidden="true" />
+              </summary>
+              <p className="px-5 pb-4 text-muted">{a}</p>
+            </details>
+          ))}
           {FAQ.length > FAQ_VISIBLE && (
-            <button type="button" className="lp-btn lp-btn-outline lp-more" aria-expanded={faqAll} onClick={() => setFaqAll(!faqAll)}>
+            <button type="button" aria-expanded={faqAll} onClick={() => setFaqAll(!faqAll)} className={cn(btnOutline, 'mx-auto mt-2')}>
               {faqAll ? 'Réduire la liste' : `Voir toutes les questions (${FAQ.length})`}
             </button>
           )}
         </div>
-      </section>
+      </Section>
 
-      <section id="contact" className="lp-sec">
-        <div className="lp-wrap lp-narrow lp-center">
-          <h2>Contact</h2>
-          <p className="lp-sub">Une question avant de vous lancer ? Écrivez-nous, nous vous répondons rapidement.</p>
-          <p>
-            {config?.contact_email && <a href={`mailto:${config.contact_email}`}>{config.contact_email}</a>}
-            {config?.contact_email && phones.length > 0 && ' · '}
-            {phones.map((p, i) => <span key={p}>{i > 0 && ' · '}<a href={telHref(p)}>{p}</a></span>)}
-          </p>
-          <Link to="/demande" className="lp-btn lp-btn-solid">Demander un accès</Link>
-        </div>
-      </section>
-
-      <footer className="lp-foot">
-        <div className="lp-wrap lp-foot-grid">
-          <div>
-            <a href="#accueil" className="lp-brand" onClick={go('accueil')}><span className="lp-mark">G</span>GestCom</a>
-            <p className="lp-muted">La gestion commerciale en ligne : clients, stock, ventes, achats et caisse.</p>
-          </div>
-          <nav aria-label="Pied de page : sections">
-            <h3>Navigation</h3>
-            {NAV.filter(([id]) => id !== 'accueil').map(([id, label]) => <a key={id} href={`#${id}`} onClick={go(id)}>{label}</a>)}
-          </nav>
-          <nav aria-label="Pied de page : accès">
-            <h3>Accès</h3>
-            <Link to="/login">Connexion</Link>
-            <Link to={startLink}>{open ? 'Créer mon espace' : 'Demander un accès'}</Link>
-            <Link to="/demande">Demander un accès</Link>
-          </nav>
-          <div>
-            <h3>Contact</h3>
+      <Section id="contact">
+        <Reveal className="mx-auto max-w-xl text-center">
+          <h2 className="text-3xl font-semibold">Contact</h2>
+          <p className="mt-3 text-muted">Une question avant de vous lancer ? Écrivez-nous, nous vous répondons rapidement.</p>
+          <p className="mt-5 flex flex-wrap justify-center gap-x-4 gap-y-1 font-semibold">
             {config?.contact_email && <a href={`mailto:${config.contact_email}`}>{config.contact_email}</a>}
             {phones.map((p) => <a key={p} href={telHref(p)}>{p}</a>)}
-            {!config?.contact_email && phones.length === 0 && <span className="lp-muted">Via la demande d'accès</span>}
+          </p>
+          <Link to="/demande" className={cn(btnSolid, 'mt-6')}>Demander un accès</Link>
+        </Reveal>
+      </Section>
+
+      <footer className="bg-side text-side-ink">
+        <div className="mx-auto grid w-full max-w-6xl gap-8 px-5 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1.2fr]">
+          <div>
+            <a href="#accueil" onClick={go('accueil')} className="no-underline"><Brand light /></a>
+            <p className="mt-3 max-w-xs text-sm">La gestion commerciale en ligne : clients, stock, ventes, achats et caisse.</p>
+          </div>
+          <nav aria-label="Pied de page : sections" className="grid content-start gap-2 text-sm">
+            <h3 className="mb-1 text-white">Navigation</h3>
+            {NAV.filter(([id]) => id !== 'accueil').map(([id, label]) => <a key={id} href={`#${id}`} onClick={go(id)} className="text-side-ink no-underline hover:text-white hover:underline">{label}</a>)}
+          </nav>
+          <nav aria-label="Pied de page : accès" className="grid content-start gap-2 text-sm">
+            <h3 className="mb-1 text-white">Accès</h3>
+            <Link to="/login" className="text-side-ink no-underline hover:text-white hover:underline">Connexion</Link>
+            <Link to={startLink} className="text-side-ink no-underline hover:text-white hover:underline">{open ? 'Créer mon espace' : 'Demander un accès'}</Link>
+            <Link to="/demande" className="text-side-ink no-underline hover:text-white hover:underline">Demander un accès</Link>
+          </nav>
+          <div className="grid content-start gap-2 text-sm">
+            <h3 className="mb-1 text-white">Contact</h3>
+            {config?.contact_email && <a href={`mailto:${config.contact_email}`} className="text-side-ink no-underline hover:text-white hover:underline">{config.contact_email}</a>}
+            {phones.map((p) => <a key={p} href={telHref(p)} className="text-side-ink no-underline hover:text-white hover:underline">{p}</a>)}
+            {!hasContact && <span>Via la demande d’accès</span>}
           </div>
         </div>
-        <div className="lp-wrap lp-foot-bar">
-          <span>© {new Date().getFullYear()} GestCom. Tous droits réservés.</span>
-          <span className="lp-legal">
-            <Link to="/legal/terms">Conditions</Link><Link to="/legal/privacy">Confidentialité</Link><Link to="/legal/subscription">Abonnement</Link><Link to="/legal/legal_notice">Mentions légales</Link>
-            <a href={consoleUrl()} className="lp-admin" rel="nofollow" aria-label="Accès équipe (console)">Équipe</a>
-          </span>
+        <div className="border-t border-white/10">
+          <div className="mx-auto flex w-full max-w-6xl flex-wrap justify-between gap-3 px-5 py-4 text-sm">
+            <span>© {new Date().getFullYear()} GestCom. Tous droits réservés.</span>
+            <span className="flex flex-wrap gap-x-5 gap-y-1">
+              {[['terms', 'Conditions'], ['privacy', 'Confidentialité'], ['subscription', 'Abonnement'], ['legal_notice', 'Mentions légales']].map(([k, l]) => (
+                <Link key={k} to={`/legal/${k}`} className="text-side-ink no-underline hover:text-white hover:underline">{l}</Link>
+              ))}
+              <a href={consoleUrl()} rel="nofollow" aria-label="Accès équipe (console)" className="text-xs text-side-ink/60 no-underline transition-opacity hover:text-white hover:underline focus-visible:text-white">Équipe</a>
+            </span>
+          </div>
         </div>
       </footer>
 
-      {phones.length > 0 || config?.contact_email ? (
-        <div className="lp-call-wrap">
-          {callOpen && (
-            <div className="lp-call" role="dialog" aria-label="Nous contacter">
-              <strong>Appelez-nous</strong>
-              {phones.map((p) => <a key={p} href={telHref(p)}><Icon d={ICONS.phone} size={18} /> {p}</a>)}
-              {config?.contact_email && <a href={`mailto:${config.contact_email}`}>{config.contact_email}</a>}
-            </div>
-          )}
-          <button type="button" className="lp-fab" aria-expanded={callOpen} aria-label="Nous contacter" onClick={() => setCallOpen(!callOpen)}><Icon d={ICONS.phone} size={26} /></button>
-        </div>
-      ) : <a className="lp-fab" href="#contact" onClick={go('contact')} aria-label="Nous contacter"><Icon d={ICONS.phone} size={26} /></a>}
+      <div data-call className="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-3">
+        {callOpen && (
+          <div role="dialog" aria-label="Nous contacter" className="grid min-w-52 gap-1 rounded-xl border border-line bg-surface p-4 shadow-xl motion-safe:animate-[gc-pop_.2s_ease_both]">
+            <strong className="mb-1 text-sm">Appelez-nous</strong>
+            {phones.map((p) => <a key={p} href={telHref(p)} className="flex items-center gap-2 rounded-md px-1 py-1.5 font-semibold no-underline hover:bg-accent-soft"><PhoneIcon className="size-[18px]" aria-hidden="true" /> {p}</a>)}
+            {config?.contact_email && <a href={`mailto:${config.contact_email}`} className="rounded-md px-1 py-1.5 text-sm no-underline hover:bg-accent-soft">{config.contact_email}</a>}
+          </div>
+        )}
+        {hasContact ? (
+          <button type="button" aria-expanded={callOpen} aria-label="Nous contacter" onClick={() => setCallOpen(!callOpen)}
+            className="grid size-14 place-items-center rounded-full border-2 border-white bg-brand-600 text-white shadow-lg transition-colors hover:bg-brand-700">
+            <PhoneIcon className="size-6" aria-hidden="true" />
+          </button>
+        ) : (
+          <a href="#contact" onClick={go('contact')} aria-label="Nous contacter" className="grid size-14 place-items-center rounded-full border-2 border-white bg-brand-600 text-white shadow-lg">
+            <PhoneIcon className="size-6" aria-hidden="true" />
+          </a>
+        )}
+      </div>
 
       {finding && <CompanySearch onClose={() => setFinding(false)} />}
     </div>

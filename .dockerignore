@@ -29,3 +29,5 @@ backend/public/index.html
 backend/public/assets
 backend/public/hot
 backend/public/storage
+backend/public/console.css
+backend/public/files

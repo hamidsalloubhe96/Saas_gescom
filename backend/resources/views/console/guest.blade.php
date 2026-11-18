@@ -18,12 +18,12 @@
             <span class="inline-flex items-center gap-2.5 font-display text-lg font-semibold text-white">
                 <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>GestCom
             </span>
-            <div class="mt-auto">
+            <div class="mt-12">
                 <p class="text-sm font-semibold text-brand-300">Console de la plateforme</p>
                 <h2 class="mt-2 text-3xl font-semibold leading-tight text-white">Administration de GestCom</h2>
                 <p class="mt-3 max-w-xs text-[.95rem]">Suivi des entreprises, des abonnements et des paiements de la plateforme.</p>
             </div>
-            <p class="relative mt-10 flex items-center gap-2 text-sm text-white/80">
+            <p class="relative mt-auto flex items-center gap-2 pt-10 text-sm text-white/80">
                 <span class="grid size-6 place-items-center rounded-md border border-white/25"><x-icon name="team" class="size-3.5" /></span>
                 Accès réservé à l’équipe GestCom
             </p>

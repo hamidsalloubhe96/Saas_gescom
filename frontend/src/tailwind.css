@@ -131,11 +131,12 @@
   .forbidden h1 { @apply mb-2; }
 
   /* ---------- Tableau de bord ---------- */
-  .kpis { @apply mb-4 grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3.5; }
-  .kpi { @apply flex flex-col gap-0.5 rounded-xl border border-line bg-surface px-4 py-4 text-inherit no-underline transition-colors duration-150; }
+  /* 8 indicateurs : 2 colonnes sur mobile, 4 à partir de lg (deux lignes de 4). */
+  .kpis { @apply mb-4 grid grid-cols-2 gap-3.5 lg:grid-cols-4; }
+  .kpi { @apply flex min-w-0 flex-col gap-0.5 rounded-xl border border-line bg-surface px-4 py-4 text-inherit no-underline transition-colors duration-150; }
   a.kpi { @apply hover:border-accent; }
   .kpi-label { @apply text-xs font-semibold text-muted; }
-  .kpi-value { @apply font-display text-[1.7rem] font-semibold leading-tight tabular-nums; }
+  .kpi-value { @apply break-words font-display text-xl font-semibold leading-tight tabular-nums sm:text-[1.7rem]; }
   .kpi-sub { @apply text-xs text-muted; }
   .tone-warn { @apply text-danger; }
   .delta-up { @apply font-semibold text-ok; }

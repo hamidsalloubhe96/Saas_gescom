@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import SalesChart from '../components/SalesChart'
-import { fmtMoney, fmtQty } from '../lib/format'
+import { fmtMoney0, fmtQty } from '../lib/format'
 
 function Kpi({ label, value, sub, tone, to }) {
   const body = (
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const { user, company, can } = useAuth()
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
+  const [days, setDays] = useState(14) // période du graphique : 14 ou 30 jours
 
   useEffect(() => {
     api.get('/dashboard').then(({ data: d }) => setData(d)).catch((err) => setError(parseError(err).message))
@@ -55,33 +56,48 @@ export default function Dashboard() {
       {d && (
         <>
           <section className="kpis" aria-label="Indicateurs clés">
-            <Kpi label="Ventes du jour" value={fmtMoney(d.sales.today)} to="/ventes?type=invoice"
+            <Kpi label="Ventes du jour" value={fmtMoney0(d.sales.today)} to="/ventes?type=invoice"
               sub={d.register_open ? 'Caisse ouverte' : 'Caisse fermée'} />
-            <Kpi label="Ventes du mois" value={fmtMoney(d.sales.month)} to="/ventes?type=invoice"
+            <Kpi label="Ventes du mois" value={fmtMoney0(d.sales.month)} to="/ventes?type=invoice"
               sub={<Delta pct={d.sales.month_change_percent} />} />
-            <Kpi label="Panier moyen (mois)" value={fmtMoney(d.sales.average_basket)}
+            <Kpi label="Panier moyen (mois)" value={fmtMoney0(d.sales.average_basket)}
               sub={`${d.sales.invoices_month} facture${d.sales.invoices_month > 1 ? 's' : ''}`} />
-            <Kpi label="À encaisser" value={fmtMoney(d.receivables.total)} to="/ventes?type=invoice"
+            <Kpi label="À encaisser" value={fmtMoney0(d.receivables.total)} to="/ventes?type=invoice"
               tone={d.receivables.overdue_count > 0 ? 'warn' : undefined}
               sub={d.receivables.overdue_count > 0
-                ? `${d.receivables.overdue_count} en retard · ${fmtMoney(d.receivables.overdue_amount)}`
+                ? `${d.receivables.overdue_count} en retard · ${fmtMoney0(d.receivables.overdue_amount)}`
                 : 'Aucun retard'} />
-            <Kpi label="À payer (fournisseurs)" value={fmtMoney(d.payables.total)} to="/achats"
+            <Kpi label="À payer (fournisseurs)" value={fmtMoney0(d.payables.total)} to="/achats"
               sub={`${d.payables.count} commande${d.payables.count > 1 ? 's' : ''} non soldée${d.payables.count > 1 ? 's' : ''}`} />
-            <Kpi label="Valeur du stock" value={fmtMoney(d.stock.value)} to="/produits"
+            <Kpi label="Valeur du stock" value={fmtMoney0(d.stock.value)} to="/produits"
               sub={`${d.stock.products} produit${d.stock.products > 1 ? 's' : ''} actif${d.stock.products > 1 ? 's' : ''} · au prix d'achat`} />
+            <Kpi label="Stock bas" value={String(d.stock.low_count)} to="/produits?low=1"
+              tone={d.stock.low_count > 0 ? 'warn' : undefined}
+              sub={d.stock.low_count > 0 ? 'à réapprovisionner' : 'Aucun produit sous le seuil'} />
+            <Kpi label="Devis en cours" value={String(d.pending.open_quotes)} to="/ventes?type=quote"
+              sub={d.pending.open_quotes > 0 ? `${fmtMoney0(d.pending.open_quotes_total)} en attente` : 'Aucun devis en attente'} />
           </section>
 
-          <section className="panel">
+          {/* À partir de xl : grille de 3 colonnes (graphique + « à traiter », puis meilleures ventes + stock bas). */}
+          <div className="grid gap-4 xl:grid-cols-3 [&_.panel]:mb-0">
+          <section className="panel xl:order-1 xl:col-span-2">
             <div className="panel-head">
-              <h2>Ventes des 30 derniers jours</h2>
-              <span className="muted">{fmtMoney(d.series.reduce((s, x) => s + x.total, 0))} TTC</span>
+              <h2>Ventes des {days} derniers jours</h2>
+              <div className="flex items-center gap-3">
+                <span className="muted hidden sm:inline">{fmtMoney0(d.series.slice(-days).reduce((s, x) => s + x.total, 0))} TTC</span>
+                <div role="group" aria-label="Période du graphique" className="flex overflow-hidden rounded-lg border border-line text-sm">
+                  {[14, 30].map((n) => (
+                    <button key={n} type="button" aria-pressed={days === n} onClick={() => setDays(n)}
+                      className={days === n ? 'whitespace-nowrap bg-accent px-3 py-1 font-semibold text-on-accent' : 'whitespace-nowrap bg-surface px-3 py-1 text-muted hover:bg-accent-soft'}>{n} j</button>
+                  ))}
+                </div>
+              </div>
             </div>
-            <SalesChart series={d.series} />
+            <SalesChart series={d.series.slice(-days)} />
           </section>
 
-          <div className="dash-cols">
-            <section className="panel">
+          <div className="dash-cols xl:contents">
+            <section className="panel xl:order-3 xl:col-span-2">
               <div className="panel-head"><h2>Meilleures ventes (30 jours)</h2><span className="muted">CA HT</span></div>
               {d.top_products.length === 0 ? <p className="muted">Pas encore de vente.</p> : (
                 <table className="lines view">
@@ -89,7 +105,7 @@ export default function Dashboard() {
                   <tbody>
                     {d.top_products.map((p) => (
                       <tr key={`${p.product_id}-${p.name}`}>
-                        <td>{p.name}</td><td className="num">{fmtQty(p.quantity)}</td><td className="num">{fmtMoney(p.revenue)}</td>
+                        <td>{p.name}</td><td className="num">{fmtQty(p.quantity)}</td><td className="num">{fmtMoney0(p.revenue)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -97,7 +113,7 @@ export default function Dashboard() {
               )}
             </section>
 
-            <section className="panel">
+            <section className="panel xl:order-4">
               <div className="panel-head">
                 <h2>Stock bas</h2>
                 {d.stock.low_count > 0 && <Link to="/produits?low=1" className="small">Voir les {d.stock.low_count} →</Link>}
@@ -119,17 +135,17 @@ export default function Dashboard() {
             </section>
           </div>
 
-          <section className="panel">
+          <section className="panel xl:order-2">
             <h2>À traiter</h2>
             <ul className="todo">
               <li>
                 <Link to="/ventes?type=quote">Devis en cours</Link>
-                <span>{d.pending.open_quotes > 0 ? `${d.pending.open_quotes} · ${fmtMoney(d.pending.open_quotes_total)}` : 'Aucun'}</span>
+                <span>{d.pending.open_quotes > 0 ? `${d.pending.open_quotes} · ${fmtMoney0(d.pending.open_quotes_total)}` : 'Aucun'}</span>
               </li>
               <li>
                 <Link to="/ventes?type=invoice">Factures en retard de paiement</Link>
                 <span className={d.receivables.overdue_count > 0 ? 'stock-low' : ''}>
-                  {d.receivables.overdue_count > 0 ? `${d.receivables.overdue_count} · ${fmtMoney(d.receivables.overdue_amount)}` : 'Aucune'}
+                  {d.receivables.overdue_count > 0 ? `${d.receivables.overdue_count} · ${fmtMoney0(d.receivables.overdue_amount)}` : 'Aucune'}
                 </span>
               </li>
               <li>
@@ -146,6 +162,7 @@ export default function Dashboard() {
               </li>
             </ul>
           </section>
+          </div>
         </>
       )}
     </>

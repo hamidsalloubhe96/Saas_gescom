@@ -24,11 +24,11 @@ export default function SalesChart({ series }) {
   const total = series.reduce((s, d) => s + d.total, 0)
   const ticks = [0, 0.25, 0.5, 0.75, 1].map((t) => t * max)
 
-  if (total === 0) return <p className="muted chart-empty">Aucune vente sur les 30 derniers jours.</p>
+  if (total === 0) return <p className="muted chart-empty">Aucune vente sur cette période.</p>
 
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="chart" role="img"
-      aria-label={`Ventes quotidiennes sur 30 jours, total ${fmtMoney(total)}`}>
+      aria-label={`Ventes quotidiennes sur ${series.length} jours, total ${fmtMoney(total)}`}>
       {ticks.map((t) => (
         <g key={t}>
           <line x1={m.l} x2={W - m.r} y1={y(t)} y2={y(t)} className="chart-grid" />

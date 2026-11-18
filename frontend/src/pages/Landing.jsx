@@ -4,7 +4,7 @@ import api, { storage } from '../api'
 import { useAuth } from '../auth'
 import {
   AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
-  PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
+  DevicesIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
 } from '../components/ui'
 import Showcase from '../components/landing/Showcase'
 import { cn } from '../lib/cn'
@@ -203,25 +203,34 @@ export default function Landing() {
             </span>
             <h1 className="mt-5 text-4xl leading-[1.1] text-white sm:text-5xl">Donnez une nouvelle dimension à la gestion de votre commerce.</h1>
             <p className="mt-5 max-w-xl text-lg text-brand-100">
-              Avec GestCom, profitez d’une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire.
+              Avec GestCom, profitez d’une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire. Utilisable sur ordinateur, tablette et téléphone, sans rien installer.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={startLink} className={btnWhite}>{open ? 'Créer mon espace gratuitement' : 'Demander un accès'} <ArrowRightIcon className="size-[18px]" aria-hidden="true" /></Link>
               <a href="#apercu" onClick={go('apercu')} className={btnLine}><PlayIcon className="size-[18px]" aria-hidden="true" /> Découvrir la plateforme</a>
             </div>
-            <ul className="mt-9 flex list-none flex-wrap gap-x-8 gap-y-4 p-0 text-sm">
-              {[[TrustIcon, `Essai gratuit pendant ${trial} jours`], [FastIcon, 'Sans carte bancaire'], [HeadsetIcon, 'Assistance réactive']].map(([Icon, text]) => (
-                <li key={text} className="flex max-w-[11rem] items-center gap-2.5 leading-snug"><Icon className="size-6 shrink-0 text-brand-300" aria-hidden="true" />{text}</li>
+            <ul className="mt-9 grid list-none grid-cols-2 gap-x-5 gap-y-5 p-0 text-sm sm:grid-cols-4">
+              {[[TrustIcon, `Essai gratuit ${trial} jours`], [FastIcon, 'Sans carte bancaire'], [HeadsetIcon, 'Assistance réactive'], [DevicesIcon, 'Ordinateur, tablette, téléphone']].map(([Icon, text]) => (
+                <li key={text} className="flex flex-col items-start gap-2 leading-snug">
+                  <Icon className="size-7 shrink-0 text-brand-300" aria-hidden="true" />
+                  <span>{text}</span>
+                </li>
               ))}
             </ul>
           </div>
 
-          {/* Capture réelle de l'application avec des données de démonstration (entreprise fictive) */}
-          <div className="mx-auto w-full max-w-xl motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both] lg:max-w-none">
-            <div className="overflow-hidden rounded-t-2xl border-[8px] border-brand-950 bg-bg shadow-2xl">
-              <img src="/dashboard-demo.png" width="2160" height="1350" alt="Aperçu du tableau de bord GestCom, avec des données fictives" className="block h-auto w-full" />
-            </div>
-            <div className="mx-[-4%] h-3.5 rounded-b-3xl bg-brand-950/70" />
+          <div className="grid justify-items-center gap-3">
+          {/* Maquette d'appareils : les captures réelles (données fictives) sont placées DERRIÈRE l'image, dont les écrans sont transparents. */}
+          <div className="relative mx-auto aspect-square w-full max-w-xl motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both] lg:max-w-none lg:scale-[1.2]">
+            <img src="/dashboard-demo.png" width="1940" height="1213" alt="Tableau de bord GestCom sur ordinateur, avec des données fictives" className="absolute object-cover object-top-left"
+              style={{ left: '16%', top: '21.2%', width: '67.6%', height: '42.2%' }} />
+            <img src="/dashboard-demo-mobile.png" width="1170" height="2505" alt="Tableau de bord GestCom sur téléphone, avec des données fictives" className="absolute object-cover object-top"
+              style={{ left: '77.8%', top: '47.8%', width: '15.6%', height: '33.4%' }} />
+            <img src="/device-mockup.png" width="500" height="500" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" />
+          </div>
+          <p className="m-0 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-sm text-white lg:-mt-6">
+            <DevicesIcon className="size-4 text-brand-300" aria-hidden="true" /> Une seule application, tous vos écrans
+          </p>
           </div>
         </div>
       </section>

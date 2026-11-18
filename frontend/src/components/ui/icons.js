@@ -58,6 +58,7 @@ export {
   Barcode as BarcodeIcon,
   Sparkles as GenerateIcon,
   ClipboardCheck as InventoryIcon,
+  MonitorSmartphone as DevicesIcon,
   Phone as PhoneIcon,
   Mail as MailIcon,
 } from 'lucide-react'

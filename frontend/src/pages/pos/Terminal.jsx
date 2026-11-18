@@ -52,12 +52,15 @@ export default function Terminal({ onSold }) {
   const totals = useMemo(() => computeTotals(lines), [lines])
   const validCart = cart.length > 0 && cart.every((c) => Number(c.quantity) > 0)
 
-  function add(product) {
+  function add(product, by = 1) {
     const stock = Number(product.stock_quantity)
     if (stock <= 0) return setNotice(`« ${product.name} » est en rupture de stock.`)
     const i = cart.findIndex((c) => c.product.id === product.id)
-    if (i < 0) return setCart([...cart, { product, quantity: 1 }])
-    const next = Number(cart[i].quantity) + 1
+    if (i < 0) {
+      if (by > stock) return setNotice(`Stock disponible pour « ${product.name} » : ${fmtQty(stock)}.`)
+      return setCart([...cart, { product, quantity: by }])
+    }
+    const next = Number(cart[i].quantity) + by
     if (next > stock) return setNotice(`Stock disponible pour « ${product.name} » : ${fmtQty(stock)}.`)
     setCart(cart.map((c, j) => (j === i ? { ...c, quantity: next } : c)))
   }
@@ -76,8 +79,8 @@ export default function Terminal({ onSold }) {
   async function scanCode(code) {
     try {
       const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
-      add(data)
-      return `${data.name} ajouté`
+      add(data, data.scan_quantity ?? 1)
+      return `${data.name} ajouté${data.scan_quantity > 1 ? ` (× ${fmtQty(data.scan_quantity)})` : ''}`
     } catch (err) {
       return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
     }

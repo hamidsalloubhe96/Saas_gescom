@@ -204,11 +204,11 @@ function Reception({ po, busy, act }) {
     let reached = false
     setQty((cur) => {
       const base = first ? Object.fromEntries(open.map((l) => [l.id, '0'])) : cur
-      const next = Math.min(Number(base[line.id] ?? 0) + 1, remaining(line))
+      const next = Math.min(Number(base[line.id] ?? 0) + (product.scan_quantity ?? 1), remaining(line))
       reached = next >= remaining(line)
       return { ...base, [line.id]: String(next) }
     })
-    return `${product.name} : +1${reached ? ' (reste atteint)' : ''}`
+    return `${product.name} : +${fmtQty(product.scan_quantity ?? 1)}${reached ? ' (reste atteint)' : ''}`
   }
 
   function submit(e) {

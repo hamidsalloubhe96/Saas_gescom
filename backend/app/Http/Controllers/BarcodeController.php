@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\ProductBarcode;
 use App\Services\Barcode;
 use App\Services\CurrentBranch;
 use App\Services\StockService;
@@ -17,21 +18,59 @@ class BarcodeController extends Controller
     public function lookup(string $code): JsonResponse
     {
         $code = trim($code);
-        $product = Product::forBranch(app(CurrentBranch::class)->id())->with('category:id,name')
-            ->where(fn ($q) => $q->where('barcode', $code)->orWhereRaw('lower(sku) = ?', [mb_strtolower($code)]))
-            ->first();
+        $base = fn () => Product::forBranch(app(CurrentBranch::class)->id())->with('category:id,name');
+
+        // Code principal ou référence : un scan = 1 unité.
+        $product = $base()->where(fn ($q) => $q->where('barcode', $code)->orWhereRaw('lower(sku) = ?', [mb_strtolower($code)]))->first();
+        $quantity = 1.0;
+        $label = null;
+
+        // Code supplémentaire (carton, autre fournisseur) : un scan = la quantité déclarée pour ce code.
+        if (! $product && ($extra = ProductBarcode::where('barcode', $code)->first())) {
+            $product = $base()->find($extra->product_id);
+            $quantity = (float) $extra->quantity;
+            $label = $extra->label;
+        }
 
         if (! $product) {
             return response()->json(['message' => 'Code inconnu.', 'code' => 'barcode_unknown'], 404);
         }
 
-        return response()->json($product->applyBranch());
+        return response()->json($product->applyBranch()->setAttribute('scan_quantity', $quantity)->setAttribute('scan_label', $label));
     }
 
     /** Génère un code interne libre (EAN-13, préfixe 200). */
     public function generate(Barcode $barcodes): JsonResponse
     {
         return response()->json(['barcode' => $barcodes->nextInternal()]);
+    }
+
+    /** Codes supplémentaires d'un produit. */
+    public function extras(int $id): JsonResponse
+    {
+        return response()->json(Product::findOrFail($id)->barcodes);
+    }
+
+    /** Ajoute un code supplémentaire (jamais déjà utilisé, ni comme code principal ni comme supplémentaire). */
+    public function addExtra(Request $request, int $id): JsonResponse
+    {
+        $product = Product::findOrFail($id);
+        $data = $request->validate([
+            'barcode' => ['required', 'string', 'max:60', 'unique:product_barcodes,barcode', 'unique:products,barcode'],
+            'label' => ['nullable', 'string', 'max:60'],
+            'quantity' => ['required', 'numeric', 'gt:0', 'max:999999'],
+        ], ['barcode.unique' => 'Ce code est déjà utilisé par un produit.']);
+
+        $product->barcodes()->create($data);
+
+        return response()->json($product->barcodes()->get(), 201);
+    }
+
+    public function removeExtra(int $id, int $barcodeId): JsonResponse
+    {
+        Product::findOrFail($id)->barcodes()->whereKey($barcodeId)->firstOrFail()->delete();
+
+        return response()->json(Product::findOrFail($id)->barcodes()->get());
     }
 
     /** Attribue un code interne à un produit qui n'en a pas (pour pouvoir l'étiqueter). */

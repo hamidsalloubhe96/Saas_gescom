@@ -18,7 +18,7 @@ class ProductController extends Controller
         return [
             'name' => ['required', 'string', 'max:190'],
             'sku' => ['nullable', 'string', 'max:60', Rule::unique('products', 'sku')->ignore($ignoreId)],
-            'barcode' => ['nullable', 'string', 'max:60', Rule::unique('products', 'barcode')->ignore($ignoreId)],
+            'barcode' => ['nullable', 'string', 'max:60', Rule::unique('products', 'barcode')->ignore($ignoreId), Rule::unique('product_barcodes', 'barcode')],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'unit' => ['nullable', 'string', 'max:20'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
@@ -56,14 +56,15 @@ class ProductController extends Controller
         ]);
 
         $branch = app(\App\Services\CurrentBranch::class)->id();
-        $query = Product::query()->forBranch($branch)->with('category:id,name')->orderBy('name');
+        $query = Product::query()->forBranch($branch)->with('category:id,name', 'barcodes:id,product_id,barcode,label,quantity')->orderBy('name');
 
         if ($term = trim((string) $request->query('q'))) {
             $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
             $query->where(fn ($q) => $q
                 ->where('name', 'ilike', $like)
                 ->orWhere('sku', 'ilike', $like)
-                ->orWhere('barcode', 'ilike', $like));
+                ->orWhere('barcode', 'ilike', $like)
+                ->orWhereHas('barcodes', fn ($b) => $b->where('barcode', 'ilike', $like)));
         }
         if ($request->filled('category_id')) {
             $query->where('category_id', $request->integer('category_id'));
@@ -114,7 +115,7 @@ class ProductController extends Controller
 
     public function show(int $id): JsonResponse
     {
-        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name')->findOrFail($id)->applyBranch());
+        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name', 'barcodes')->findOrFail($id)->applyBranch());
     }
 
     public function update(Request $request, int $id): JsonResponse

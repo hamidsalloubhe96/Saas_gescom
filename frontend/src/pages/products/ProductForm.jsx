@@ -2,6 +2,7 @@ import { useState } from 'react'
 import api, { parseError } from '../../api'
 import Field from '../../components/Field'
 import ScanButton from '../../components/ScanButton'
+import ExtraBarcodes from './ExtraBarcodes'
 import { GenerateIcon } from '../../components/ui'
 import { barcodeWarning } from '../../lib/barcode'
 
@@ -80,6 +81,9 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
           </p>
         </div>
       </div>
+      {isEdit
+        ? <ExtraBarcodes product={product} unit={form.unit || 'pièce'} />
+        : <p className="mb-4 text-xs text-muted">Enregistrez d’abord le produit pour lui ajouter d’autres codes (carton, autre fournisseur).</p>}
       <div className="row">
         <div className="field">
           <label htmlFor="category_id">Catégorie</label>

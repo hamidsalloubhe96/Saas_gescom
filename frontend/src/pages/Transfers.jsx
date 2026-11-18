@@ -82,10 +82,11 @@ function NewTransfer({ restricted, onDone, onCancel }) {
       setLines((cur) => {
         const kept = cur.filter((l) => l.product_id || l.quantity) // retire la ligne vide de départ
         const i = kept.findIndex((l) => String(l.product_id) === String(p.id))
-        if (i === -1) return [...kept, { product_id: String(p.id), quantity: '1' }]
-        return kept.map((l, k) => (k === i ? { ...l, quantity: String(Number(l.quantity || 0) + 1) } : l))
+        const by = p.scan_quantity ?? 1
+        if (i === -1) return [...kept, { product_id: String(p.id), quantity: String(by) }]
+        return kept.map((l, k) => (k === i ? { ...l, quantity: String(Number(l.quantity || 0) + by) } : l))
       })
-      return `${p.name} : +1`
+      return `${p.name} : +${fmtQty(p.scan_quantity ?? 1)}`
     } catch (err) {
       return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
     }
@@ -168,9 +169,9 @@ function Detail({ id }) {
     counting.current = true
     setReceived((cur) => {
       const base = first ? Object.fromEntries(t.lines.map((l) => [l.id, 0])) : cur
-      return { ...base, [line.id]: Math.min(Number(base[line.id] ?? 0) + 1, Number(line.quantity)) }
+      return { ...base, [line.id]: Math.min(Number(base[line.id] ?? 0) + (product.scan_quantity ?? 1), Number(line.quantity)) }
     })
-    return `${product.name} : +1`
+    return `${product.name} : +${fmtQty(product.scan_quantity ?? 1)}`
   }
 
   async function act(path, body) {

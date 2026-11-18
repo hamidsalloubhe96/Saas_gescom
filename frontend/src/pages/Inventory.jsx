@@ -39,8 +39,9 @@ export default function Inventory() {
   async function scanCode(code) {
     try {
       const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
-      count(data)
-      return `${data.name} : +1`
+      const by = data.scan_quantity ?? 1
+      count(data, by)
+      return `${data.name} : +${fmtQty(by)}`
     } catch (err) {
       return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
     }

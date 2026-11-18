@@ -51,12 +51,12 @@ export default function Labels() {
     return () => clearTimeout(t)
   }, [q])
 
-  const add = (product) => setRows((cur) => (cur.some((r) => r.product.id === product.id) ? cur : [...cur, { product, copies: 1 }]))
+  const add = (product, code) => setRows((cur) => (cur.some((r) => r.product.id === product.id) ? cur : [...cur, { product, copies: 1, code: code || product.barcode || product.sku }]))
 
   async function scanCode(code) {
     try {
       const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
-      add(data)
+      add(data, code) // le code scanné (principal ou supplémentaire) est celui qu'on imprime
       return `${data.name} ajouté`
     } catch (err) { return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message }
   }
@@ -65,11 +65,11 @@ export default function Labels() {
     setError(null)
     try {
       const { data } = await api.post(`/products/${product.id}/barcode`)
-      setRows((cur) => cur.map((r) => (r.product.id === product.id ? { ...r, product: { ...r.product, barcode: data.barcode } } : r)))
+      setRows((cur) => cur.map((r) => (r.product.id === product.id ? { ...r, product: { ...r.product, barcode: data.barcode }, code: data.barcode } : r)))
     } catch (err) { setError(parseError(err).message) }
   }
 
-  const labels = rows.flatMap((r) => Array.from({ length: Math.max(0, Math.min(Number(r.copies) || 0, 500)) }, (_, i) => ({ product: r.product, key: `${r.product.id}-${i}` })))
+  const labels = rows.flatMap((r) => Array.from({ length: Math.max(0, Math.min(Number(r.copies) || 0, 500)) }, (_, i) => ({ product: r.product, code: r.code, key: `${r.product.id}-${i}` })))
 
   return (
     <>
@@ -115,8 +115,17 @@ export default function Labels() {
                   <tr key={r.product.id}>
                     <td>{r.product.name}</td>
                     <td>
-                      {r.product.barcode
-                        ? <code className="text-xs">{r.product.barcode}</code>
+                      {r.product.barcode || r.product.barcodes?.length
+                        ? (
+                          <select aria-label={`Code à imprimer pour ${r.product.name}`} value={r.code}
+                            onChange={(e) => setRows(rows.map((x) => (x.product.id === r.product.id ? { ...x, code: e.target.value } : x)))}
+                            className="max-w-48 rounded-lg border border-line bg-surface px-2 py-1.5 text-xs">
+                            {[r.product.barcode && { barcode: r.product.barcode, label: 'Principal' }, ...(r.product.barcodes ?? [])].filter(Boolean).map((c) => (
+                              <option key={c.barcode} value={c.barcode}>{c.barcode}{c.label ? ` · ${c.label}` : ''}</option>
+                            ))}
+                            {!r.product.barcode && !r.product.barcodes?.some((c) => c.barcode === r.code) && <option value={r.code}>{r.code}</option>}
+                          </select>
+                        )
                         : (
                           <span className="flex flex-wrap items-center gap-2 text-sm text-muted">
                             Pas de code
@@ -157,11 +166,11 @@ export default function Labels() {
           <h2 className="no-print mb-3">Aperçu</h2>
           <div className={cn('grid gap-[1mm]', f.grid ? 'justify-start' : 'justify-center')}
             style={f.grid ? { gridTemplateColumns: `repeat(3, ${f.w}mm)`, gap: '1mm 2mm' } : { gridTemplateColumns: `${f.w}mm` }}>
-            {labels.map(({ product, key }) => (
+            {labels.map(({ product, code, key }) => (
               <div key={key} className="flex flex-col items-center justify-center overflow-hidden rounded-sm border border-dashed border-line bg-white p-[1.5mm] text-center text-black print:border-0"
                 style={{ width: `${f.w}mm`, height: `${f.h}mm`, breakInside: 'avoid', breakAfter: f.grid ? 'auto' : 'page' }}>
                 {showName && <div className="w-full truncate text-[3.2mm] font-semibold leading-tight">{product.name}</div>}
-                <Bars code={product.barcode || product.sku} />
+                <Bars code={code} />
                 {showPrice && <div className="text-[3.6mm] font-bold leading-tight">{fmtMoney(product.sale_price)}</div>}
               </div>
             ))}

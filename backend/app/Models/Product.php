@@ -53,6 +53,11 @@ class Product extends Model
         return $this;
     }
 
+    public function barcodes(): HasMany
+    {
+        return $this->hasMany(ProductBarcode::class)->orderBy('quantity')->orderBy('id');
+    }
+
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);

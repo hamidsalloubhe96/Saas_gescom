@@ -49,6 +49,12 @@ return [
             'local_domain' => env('MAIL_EHLO_DOMAIN', parse_url((string) env('APP_URL', 'http://localhost'), PHP_URL_HOST)),
         ],
 
+        // API HTTP Brevo : à utiliser quand le SMTP sortant est bloqué (Render offre gratuite).
+        'brevo' => [
+            'transport' => 'brevo',
+            'key' => env('BREVO_API_KEY'),
+        ],
+
         'ses' => [
             'transport' => 'ses',
         ],

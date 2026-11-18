@@ -97,6 +97,14 @@ Chaque entreprise a un **siège** et autant de **points de vente** que souhaité
 - **Webhook de paiement** : `POST /api/webhooks/payments`, corps JSON `{reference, amount, status: paid|failed}` signé HMAC-SHA256 (en-tête `X-Signature`) avec `PAYMENT_WEBHOOK_SECRET`. Il ne valide qu'un paiement **déjà déclaré** avec la même référence et un montant suffisant. Route fermée (404) sans secret.
 - **Nouvelle version** : `GET /api/public/version` (commit Render) ; l'interface propose d'actualiser après un déploiement.
 
+### E-mails en production (Render)
+
+L'offre gratuite de Render bloque le SMTP sortant (ports 25, 465, 587) : l'envoi par SMTP échoue avec « Connection timed out ». Utiliser l'API HTTP de Brevo :
+
+1. Créer un compte Brevo et valider l'adresse expéditeur (*Expéditeurs et IP*), sans nom de domaine nécessaire.
+2. Générer une clé API (*SMTP & API* > *Clés API*).
+3. Sur Render : `MAIL_MAILER=brevo`, `BREVO_API_KEY=<clé>`, `MAIL_FROM_ADDRESS=<l'expéditeur validé>`, `MAIL_FROM_NAME=GestCom`. Supprimer `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
+
 Variables utiles : `APP_KEY`, `APP_URL`, `CENTRAL_DOMAINS`, `MAIL_*`, `CONSOLE_ALERT_EMAIL`, `PAYMENT_WEBHOOK_SECRET`, `TURNSTILE_*`, `BACKUP_DISK`, `PG_BIN_PATH` (local Windows uniquement).
 **Attention** : le disque de Render est éphémère ; pour conserver sauvegardes et exports, configurez un disque S3 (`BACKUP_DISK`) ou un disque persistant.
 

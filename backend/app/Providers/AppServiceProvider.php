@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Pilote d'envoi « brevo » (API HTTP).
+        \Illuminate\Support\Facades\Mail::extend('brevo', fn (array $config) => new \App\Mail\Transport\BrevoTransport((string) ($config['key'] ?? '')));
+
         // Annuaire central des utilisateurs, tenu à jour automatiquement.
         \App\Models\User::observe(\App\Observers\UserDirectoryObserver::class);
 

@@ -7,7 +7,7 @@ import BranchSwitcher from './BranchSwitcher'
 import NewVersionBanner from './NewVersionBanner'
 import SubscriptionBanner from './SubscriptionBanner'
 import {
-  BillingIcon, BranchesIcon, Brand, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon,
+  AccountIcon, BillingIcon, BranchesIcon, Brand, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon,
   PosIcon, ProductsIcon, PurchasesIcon, SuppliersIcon, SupportIcon, TransfersIcon, UsersIcon,
 } from './ui'
 
@@ -26,6 +26,7 @@ export const NAV = [
   { to: '/transferts', label: 'Transferts', perm: 'transfers.receive', icon: TransfersIcon },
   { to: '/abonnement', label: 'Abonnement', perm: 'billing.manage', icon: BillingIcon },
   { to: '/support', label: 'Support', icon: SupportIcon },
+  { to: '/compte', label: 'Mon compte', icon: AccountIcon },
 ]
 
 const link = ({ isActive }) => cn(

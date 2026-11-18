@@ -4,6 +4,7 @@ import { parseError, storage } from '../api'
 import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
+import { PasswordField } from '../components/ui'
 
 export default function Login() {
   const { user, login } = useAuth()
@@ -51,7 +52,7 @@ export default function Login() {
           error={fields.tenant} autoComplete="organization" autoCapitalize="none" required />
         <Field label="Email" name="email" type="email" value={form.email} onChange={set}
           error={fields.email} autoComplete="username" required />
-        <Field label="Mot de passe" name="password" type="password" value={form.password} onChange={set}
+        <PasswordField label="Mot de passe" name="password" value={form.password} onChange={set}
           error={fields.password} autoComplete="current-password" required />
         <p className="auth-footer" style={{ margin: '0 0 .75rem', textAlign: 'right' }}><Link to="/mot-de-passe-oublie">Mot de passe oublié ?</Link></p>
         <button className="btn" disabled={busy}>{busy ? 'Connexion…' : 'Se connecter'}</button>

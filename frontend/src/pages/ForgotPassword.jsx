@@ -4,6 +4,7 @@ import api, { parseError, storage } from '../api'
 import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
+import { PasswordField } from '../components/ui'
 
 /** Mot de passe oublié : 1) identifiant + e-mail -> code par e-mail, 2) code + nouveau mot de passe. */
 export default function ForgotPassword() {
@@ -74,9 +75,9 @@ export default function ForgotPassword() {
           {error && <div role="alert" className="alert">{error}</div>}
           <Field label="Code à 6 chiffres" name="code" value={form.code} onChange={set} error={fields.code}
             inputMode="numeric" maxLength={6} autoComplete="one-time-code" autoFocus required />
-          <Field label="Nouveau mot de passe" name="password" type="password" value={form.password} onChange={set}
+          <PasswordField label="Nouveau mot de passe" name="password" value={form.password} onChange={set} meter
             error={fields.password} hint="8 caractères minimum" autoComplete="new-password" required />
-          <Field label="Confirmation" name="password_confirmation" type="password" value={form.password_confirmation}
+          <PasswordField label="Confirmation" name="password_confirmation" value={form.password_confirmation}
             onChange={set} autoComplete="new-password" required />
           <button className="btn" disabled={busy || form.code.length !== 6}>{busy ? 'Enregistrement…' : 'Changer le mot de passe'}</button>
           <p className="auth-footer">

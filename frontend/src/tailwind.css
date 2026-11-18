@@ -28,15 +28,15 @@
 
   /* ---------- Formulaires ---------- */
   .field { @apply mb-0.5 flex-1; }
-  .field label { @apply mb-1.5 block text-sm font-semibold; }
+  .field label { @apply mb-1 block text-sm font-semibold; }
   .field input, .field select, .field textarea,
   .toolbar input, .toolbar select, .inline-form input, .pay-row select, .pay-row input, .pos-search {
-    @apply w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2.5 text-ink transition-shadow duration-150 placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/25;
+    @apply w-full min-w-0 rounded-lg border border-line bg-surface px-3 py-2 text-ink transition-shadow duration-150 placeholder:text-muted/70 focus:border-accent focus:outline-none focus:ring-3 focus:ring-accent/25;
   }
   .field textarea { @apply resize-y; }
   .field input[aria-invalid='true'] { @apply border-danger; }
   .field input[type='checkbox'] { @apply size-4 w-auto accent-[var(--accent)]; }
-  .field-error, .field-hint { @apply mb-1.5 mt-1 min-h-[1.1em] text-xs; }
+  .field-error, .field-hint { @apply mb-1 mt-1 min-h-4 text-xs; }
   .field-error { @apply text-danger; }
   .field-hint { @apply text-muted; }
   .row { @apply flex flex-col gap-0 sm:flex-row sm:gap-3; }

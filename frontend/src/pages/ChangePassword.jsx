@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
-import Field from '../components/Field'
+import { PasswordField } from '../components/ui'
 
 /** Changement de mot de passe : imposé après un mot de passe provisoire donné par la plateforme. */
 export default function ChangePassword() {
@@ -42,11 +42,11 @@ export default function ChangePassword() {
     >
       <form onSubmit={submit} noValidate>
         {error && <div role="alert" className="alert">{error}</div>}
-        <Field label="Mot de passe actuel" name="current_password" type="password" autoComplete="current-password"
+        <PasswordField label="Mot de passe actuel" name="current_password" autoComplete="current-password"
           value={form.current_password} onChange={set} error={fields.current_password} required />
-        <Field label="Nouveau mot de passe" name="password" type="password" autoComplete="new-password"
+        <PasswordField label="Nouveau mot de passe" name="password" autoComplete="new-password" meter
           value={form.password} onChange={set} error={fields.password} hint="8 caractères minimum" required />
-        <Field label="Confirmation" name="password_confirmation" type="password" autoComplete="new-password"
+        <PasswordField label="Confirmation" name="password_confirmation" autoComplete="new-password"
           value={form.password_confirmation} onChange={set} required />
         <button className="btn" disabled={busy}>{busy ? 'Enregistrement…' : 'Enregistrer'}</button>
       </form>

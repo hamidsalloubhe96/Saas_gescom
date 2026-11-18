@@ -10,6 +10,16 @@
     </header>
 
     <section class="panel">
+        <h2>Adresse e-mail</h2>
+        <form method="POST" action="{{ route('console.account.email') }}" novalidate>
+            @csrf @method('PUT')
+            <div class="field"><label for="em">E-mail de connexion</label><input id="em" name="email" type="email" value="{{ old('email', auth('admin')->user()->email) }}" autocomplete="username" required>@error('email')<p class="err">{{ $message }}</p>@enderror</div>
+            <div class="field"><label for="emp">Mot de passe actuel</label><input id="emp" name="current_password" type="password" autocomplete="current-password" required><p class="hint">Demandé pour confirmer le changement.</p>@error('current_password')<p class="err">{{ $message }}</p>@enderror</div>
+            <button class="btn">Enregistrer l'e-mail</button>
+        </form>
+    </section>
+
+    <section class="panel">
         <h2>Changer mon mot de passe</h2>
         <form method="POST" action="{{ route('console.password.update') }}" novalidate>
             @csrf @method('PUT')

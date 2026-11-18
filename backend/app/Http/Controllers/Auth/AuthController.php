@@ -64,6 +64,27 @@ class AuthController extends Controller
         return response()->json(['message' => 'Déconnecté.']);
     }
 
+    /** Mon compte : nom et e-mail. Changer l'e-mail exige le mot de passe actuel. */
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        abort_if($user->currentAccessToken()?->name === 'impersonation', 403, "Impossible depuis une connexion d'assistance.");
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:190', \Illuminate\Validation\Rule::unique('users', 'email')->ignore($user->id)],
+            'current_password' => [\Illuminate\Validation\Rule::requiredIf(fn () => strtolower($request->input('email', '')) !== strtolower($user->email)), 'nullable', 'string'],
+        ], ['email.unique' => 'Cette adresse e-mail est déjà utilisée.', 'current_password.required' => "Saisissez votre mot de passe actuel pour changer d'e-mail."]);
+
+        if (strtolower($data['email']) !== strtolower($user->email) && ! Hash::check($data['current_password'] ?? '', $user->password)) {
+            throw ValidationException::withMessages(['current_password' => ['Mot de passe actuel incorrect.']]);
+        }
+
+        $user->update(['name' => $data['name'], 'email' => $data['email']]);
+
+        return response()->json(['user' => $user->fresh()->present()]);
+    }
+
     /** Changement de son propre mot de passe (obligatoire après un mot de passe provisoire). */
     public function changePassword(Request $request): JsonResponse
     {

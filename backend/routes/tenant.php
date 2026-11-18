@@ -38,6 +38,7 @@ Route::prefix('api')
         Route::middleware(['auth:sanctum', 'impersonation.readonly'])->group(function () {
             Route::get('/me', [AuthController::class, 'me']);
             Route::post('/password', [AuthController::class, 'changePassword'])->middleware('throttle:10,1');
+            Route::put('/profile', [AuthController::class, 'updateProfile'])->middleware('throttle:10,1');
             Route::post('/logout', [AuthController::class, 'logout']);
 
             Route::get('dashboard', DashboardController::class)->middleware('permission:dashboard.view');

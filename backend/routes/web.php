@@ -49,6 +49,7 @@ Route::prefix('console')->name('console.')->group(function () {
 
         // Mon compte
         Route::get('mot-de-passe', [AccountController::class, 'showPassword'])->name('password');
+        Route::put('mon-compte/email', [AccountController::class, 'updateEmail'])->middleware('throttle:10,1')->name('account.email');
         Route::put('mot-de-passe', [AccountController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
         Route::get('double-authentification', [AccountController::class, 'showTwoFactorSetup'])->name('twofactor.setup');
         Route::post('double-authentification', [AccountController::class, 'confirmTwoFactor'])->middleware('throttle:10,1')->name('twofactor.setup.confirm');

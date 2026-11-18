@@ -19,6 +19,25 @@ class AccountController extends Controller
         return view('console.password');
     }
 
+    /** Changement de l'e-mail de connexion : exige le mot de passe actuel. */
+    public function updateEmail(Request $request): RedirectResponse
+    {
+        $admin = $request->user('admin');
+        $data = $request->validate([
+            'email' => ['required', 'email', 'max:190', \Illuminate\Validation\Rule::unique('platform_admins', 'email')->ignore($admin->id)],
+            'current_password' => ['required', 'string'],
+        ], ['email.unique' => 'Cette adresse e-mail est déjà utilisée.']);
+
+        if (! Hash::check($data['current_password'], $admin->password)) {
+            throw ValidationException::withMessages(['current_password' => 'Mot de passe actuel incorrect.']);
+        }
+        $old = $admin->email;
+        $admin->forceFill(['email' => $data['email']])->save();
+        AuditLog::record('auth.email_changed', "E-mail modifié : {$old} -> {$data['email']}", null, [], $admin);
+
+        return back()->with('success', 'Adresse e-mail modifiée.');
+    }
+
     public function updatePassword(Request $request): RedirectResponse
     {
         $admin = $request->user('admin');

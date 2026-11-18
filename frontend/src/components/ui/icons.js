@@ -54,6 +54,10 @@ export {
   ChevronDown as ChevronDownIcon,
   Star as StarIcon,
   EyeOff as EyeOffIcon,
+  ScanBarcode as ScanIcon,
+  Barcode as BarcodeIcon,
+  Sparkles as GenerateIcon,
+  ClipboardCheck as InventoryIcon,
   Phone as PhoneIcon,
   Mail as MailIcon,
 } from 'lucide-react'

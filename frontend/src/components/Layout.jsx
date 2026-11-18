@@ -7,7 +7,7 @@ import BranchSwitcher from './BranchSwitcher'
 import NewVersionBanner from './NewVersionBanner'
 import SubscriptionBanner from './SubscriptionBanner'
 import {
-  BillingIcon, BranchesIcon, Brand, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InvoicesIcon, LogoutIcon, MenuIcon,
+  BillingIcon, BranchesIcon, Brand, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon,
   PosIcon, ProductsIcon, PurchasesIcon, SuppliersIcon, SupportIcon, TransfersIcon, UsersIcon,
 } from './ui'
 
@@ -18,6 +18,7 @@ export const NAV = [
   { to: '/fournisseurs', label: 'Fournisseurs', perm: 'suppliers.view', icon: SuppliersIcon },
   { to: '/produits', label: 'Produits & stock', perm: 'products.view', icon: ProductsIcon },
   { to: '/ventes', label: 'Devis & factures', perm: 'sales.view', icon: InvoicesIcon },
+  { to: '/inventaire', label: 'Inventaire', perm: 'stock.move', icon: InventoryIcon },
   { to: '/achats', label: 'Achats', perm: 'purchases.view', icon: PurchasesIcon },
   { to: '/caisse', label: 'Caisse', perm: 'pos.use', icon: PosIcon },
   { to: '/utilisateurs', label: 'Utilisateurs', perm: 'users.manage', icon: UsersIcon },
@@ -48,7 +49,7 @@ export default function Layout() {
   }, [open])
 
   return (
-    <div className="min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
+    <div data-app-shell className="min-h-screen lg:grid lg:grid-cols-[256px_minmax(0,1fr)]">
       {/* Barre du haut (mobile et tablette) */}
       <header data-app-nav className="sticky top-0 z-30 flex items-center gap-3 bg-side px-4 py-2.5 text-white lg:hidden">
         <button type="button" onClick={() => setOpen(true)} aria-label="Ouvrir le menu" aria-expanded={open} aria-controls="app-sidebar"

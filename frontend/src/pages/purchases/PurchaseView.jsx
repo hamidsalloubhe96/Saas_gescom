@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
 import PaymentsPanel from '../../components/PaymentsPanel'
 import PurchasePill from '../../components/PurchasePill'
+import ScanButton from '../../components/ScanButton'
 import { fmtMoney, fmtQty } from '../../lib/format'
 import { paymentState, remaining } from '../../lib/purchases'
 import { fmtDay } from '../../lib/sales'
@@ -178,13 +179,37 @@ function Reception({ po, busy, act }) {
   const open = po.lines.filter((l) => remaining(l) > 0)
   // Par défaut, on propose de réceptionner tout le reste à recevoir.
   const [qty, setQty] = useState(() => Object.fromEntries(open.map((l) => [l.id, String(remaining(l))])))
+  const scanning = useRef(false) // vrai dès le premier scan : on compte alors à partir de zéro
 
   // Après chaque réception, on recale les quantités proposées sur le nouveau reste.
   useEffect(() => {
     setQty(Object.fromEntries(po.lines.filter((l) => remaining(l) > 0).map((l) => [l.id, String(remaining(l))])))
+    scanning.current = false
   }, [po.lines])
 
   if (open.length === 0) return null
+
+  /** Code lu : la quantité reçue de la ligne correspondante augmente de 1 (sans dépasser le reste à recevoir). */
+  async function scanItem(code) {
+    let product
+    try {
+      product = (await api.get(`/products/barcode/${encodeURIComponent(code)}`)).data
+    } catch (err) {
+      return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
+    }
+    const line = open.find((l) => l.product_id === product.id)
+    if (!line) return `« ${product.name} » n'est pas à recevoir dans cette commande.`
+    const first = !scanning.current
+    scanning.current = true
+    let reached = false
+    setQty((cur) => {
+      const base = first ? Object.fromEntries(open.map((l) => [l.id, '0'])) : cur
+      const next = Math.min(Number(base[line.id] ?? 0) + 1, remaining(line))
+      reached = next >= remaining(line)
+      return { ...base, [line.id]: String(next) }
+    })
+    return `${product.name} : +1${reached ? ' (reste atteint)' : ''}`
+  }
 
   function submit(e) {
     e.preventDefault()
@@ -195,10 +220,15 @@ function Reception({ po, busy, act }) {
 
   return (
     <section className="panel no-print">
-      <h2>Réception de marchandises</h2>
-      <p className="muted" style={{ marginTop: 0 }}>
-        Saisissez les quantités effectivement reçues (réception partielle possible). Les produits sont ajoutés au stock.
-      </p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h2>Réception de marchandises</h2>
+          <p className="muted" style={{ marginTop: 0 }}>
+            Saisissez les quantités effectivement reçues (réception partielle possible), ou scannez les articles : chaque scan ajoute 1. Les produits sont ajoutés au stock.
+          </p>
+        </div>
+        <ScanButton onScan={scanItem} continuous title="Scanner la marchandise reçue" label="Scanner la livraison" />
+      </div>
       <form onSubmit={submit} noValidate>
         <table className="lines view">
           <thead>

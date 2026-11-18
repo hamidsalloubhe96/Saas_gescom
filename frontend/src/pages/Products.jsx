@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
-import { AddIcon, BranchesIcon, HistoryIcon, IconButton, MovementIcon, RowActions } from '../components/ui'
+import { Link, useSearchParams } from 'react-router-dom'
+import { AddIcon, BarcodeIcon, BranchesIcon, HistoryIcon, IconButton, MovementIcon, RowActions } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
+import ScanButton from '../components/ScanButton'
 import { fmtMoney, fmtQty } from '../lib/format'
 import Categories from './products/Categories'
 import History from './products/History'
@@ -68,6 +69,21 @@ export default function Products() {
   useEffect(() => { loadCategories() }, [loadCategories])
 
   const close = () => setModal(null)
+
+  /** Code lu par la caméra : on filtre la liste ; s'il est inconnu, on propose de créer le produit avec ce code. */
+  async function scanForSearch(code) {
+    setSearch(code)
+    try {
+      await api.get(`/products/barcode/${encodeURIComponent(code)}`)
+      return `Recherche : ${code}`
+    } catch (err) {
+      if (err.response?.status === 404 && canManage) {
+        setModal({ kind: 'form', defaults: { barcode: code } })
+        return 'Code inconnu : création du produit'
+      }
+      return `Code inconnu : ${code}`
+    }
+  }
   const saved = async () => { close(); await Promise.all([load(), loadCategories()]) }
 
   async function remove(p) {
@@ -91,6 +107,7 @@ export default function Products() {
           <p className="muted">{meta.total} {meta.total > 1 ? 'produits' : 'produit'}</p>
         </div>
         <div className="head-actions">
+          <Link to="/produits/etiquettes" className="btn btn-secondary btn-inline btn-link"><BarcodeIcon className="size-4" aria-hidden="true" /> Étiquettes</Link>
           {canManage && <button className="btn btn-secondary btn-inline" onClick={() => setModal({ kind: 'categories' })}>Catégories</button>}
           {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}><AddIcon className="size-4" aria-hidden="true" /> Nouveau produit</button>}
         </div>
@@ -99,6 +116,7 @@ export default function Products() {
       <div className="toolbar">
         <input type="search" placeholder="Rechercher (désignation, référence, code-barres)…" aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
+        <ScanButton onScan={scanForSearch} title="Retrouver un produit" />
         <select aria-label="Filtrer par catégorie" value={categoryId}
           onChange={(e) => { setCategoryId(e.target.value); setPage(1) }}>
           <option value="">Toutes les catégories</option>
@@ -168,7 +186,7 @@ export default function Products() {
 
       <Modal open={modal?.kind === 'form'} onClose={close} wide
         title={modal?.product ? 'Modifier le produit' : 'Nouveau produit'}>
-        <ProductForm key={modal?.product?.id ?? 'new'} product={modal?.product} categories={categories}
+        <ProductForm key={modal?.product?.id ?? modal?.defaults?.barcode ?? 'new'} product={modal?.product} defaults={modal?.defaults} categories={categories}
           onSaved={saved} onCancel={close} />
       </Modal>
       <Modal open={modal?.kind === 'movement'} onClose={close} title="Mouvement de stock">

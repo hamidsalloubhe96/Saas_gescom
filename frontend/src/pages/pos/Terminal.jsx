@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import api, { parseError } from '../../api'
 import Modal from '../../components/Modal'
+import ScanButton from '../../components/ScanButton'
 import { fmtMoney, fmtQty } from '../../lib/format'
 import { computeLine, computeTotals } from '../../lib/sales'
 import PaymentDialog from './PaymentDialog'
@@ -71,6 +72,17 @@ export default function Terminal({ onSold }) {
     setCart(cart.map((c) => (c.product.id === id ? { ...c, quantity: value } : c)))
   }
 
+  /** Code lu par la caméra : on retrouve le produit (code-barres ou référence exacte) et on l'ajoute au panier. */
+  async function scanCode(code) {
+    try {
+      const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
+      add(data)
+      return `${data.name} ajouté`
+    } catch (err) {
+      return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
+    }
+  }
+
   function onSearchKey(e) {
     if (e.key !== 'Enter') return
     e.preventDefault()
@@ -96,8 +108,11 @@ export default function Terminal({ onSold }) {
   return (
     <div className="pos">
       <section className="pos-catalog">
-        <input ref={searchRef} type="search" className="pos-search" placeholder="Rechercher ou scanner un code-barres…"
-          aria-label="Rechercher un produit" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onSearchKey} />
+        <div className="mb-3 flex gap-2">
+          <input ref={searchRef} type="search" className="pos-search !mb-0 flex-1" placeholder="Rechercher ou scanner un code-barres…"
+            aria-label="Rechercher un produit" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onSearchKey} />
+          <ScanButton onScan={scanCode} continuous title="Scanner les articles" className="min-h-12" />
+        </div>
         {notice && <div role="status" className="alert pos-notice">{notice}</div>}
         <div className="pos-grid" aria-busy={loadingP}>
           {products.map((p) => {

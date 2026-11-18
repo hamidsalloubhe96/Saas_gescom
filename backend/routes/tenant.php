@@ -101,6 +101,10 @@ Route::prefix('api')
             }
 
             // --- Catégories et stock ---
+            Route::get('products/barcode/{code}', [\App\Http\Controllers\BarcodeController::class, 'lookup'])->middleware('permission:products.view')->where('code', '[^/]+');
+            Route::post('products/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->middleware(['permission:products.manage', 'hq']);
+            Route::post('products/{id}/barcode', [\App\Http\Controllers\BarcodeController::class, 'assign'])->middleware(['permission:products.manage', 'hq']);
+            Route::post('stock/inventory', [\App\Http\Controllers\BarcodeController::class, 'inventory'])->middleware('permission:stock.move');
             Route::get('categories', [CategoryController::class, 'index'])->middleware('permission:products.view');
             Route::middleware(['permission:products.manage', 'hq'])->group(function () {
                 Route::post('categories', [CategoryController::class, 'store']);

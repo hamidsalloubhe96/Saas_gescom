@@ -1,22 +1,38 @@
 import { useState } from 'react'
 import api, { parseError } from '../../api'
 import Field from '../../components/Field'
+import ScanButton from '../../components/ScanButton'
+import { GenerateIcon } from '../../components/ui'
+import { barcodeWarning } from '../../lib/barcode'
 
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
 }
 
-export default function ProductForm({ product, categories, onSaved, onCancel }) {
+export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
   const isEdit = Boolean(product?.id)
   const [form, setForm] = useState(() =>
     isEdit
       ? Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]]))
-      : EMPTY,
+      : { ...EMPTY, ...defaults },
   )
   const [fields, setFields] = useState({})
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
+  const [generating, setGenerating] = useState(false)
+
+  async function generateCode() {
+    setGenerating(true)
+    try {
+      const { data } = await api.post('/products/barcode/generate')
+      setForm((f) => ({ ...f, barcode: data.barcode }))
+    } catch (err) {
+      setError(parseError(err).message)
+    } finally {
+      setGenerating(false)
+    }
+  }
 
   const set = (e) => {
     const { name, value, type, checked } = e.target
@@ -50,7 +66,19 @@ export default function ProductForm({ product, categories, onSaved, onCancel }) 
       <div className="row">
         <Field label="Référence (SKU)" name="sku" value={form.sku} onChange={set} error={fields.sku}
           hint="Laissez vide pour une génération automatique" />
-        <Field label="Code-barres" name="barcode" value={form.barcode} onChange={set} error={fields.barcode} />
+        <div className="field">
+          <label htmlFor="barcode">Code-barres</label>
+          <div className="flex gap-2">
+            <input id="barcode" name="barcode" value={form.barcode} onChange={set} aria-invalid={Boolean(fields.barcode)} inputMode="numeric" className="!min-w-0 flex-1" />
+            <ScanButton onScan={(c) => { setForm((f) => ({ ...f, barcode: c })); return `Code lu : ${c}` }} title="Lire le code-barres du produit" />
+            <button type="button" className="btn btn-secondary btn-inline" onClick={generateCode} disabled={generating} title="Créer un code interne (préfixe 200)">
+              <GenerateIcon className="size-4" aria-hidden="true" /> <span className="hidden sm:inline">Générer</span>
+            </button>
+          </div>
+          <p className={fields.barcode || barcodeWarning(form.barcode) ? 'field-error' : 'field-hint'}>
+            {fields.barcode || barcodeWarning(form.barcode) || 'Scannez, saisissez ou générez un code interne.'}
+          </p>
+        </div>
       </div>
       <div className="row">
         <div className="field">

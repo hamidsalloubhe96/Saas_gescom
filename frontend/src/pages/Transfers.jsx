@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { AddIcon } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
+import ScanButton from '../components/ScanButton'
 import { fmtDate, fmtQty } from '../lib/format'
 
 const STATUS = { requested: ['Demandé', 'warn'], shipped: ['Expédié', 'info'], received: ['Reçu', 'on'], cancelled: ['Annulé', 'off'] }
@@ -73,6 +74,23 @@ function NewTransfer({ restricted, onDone, onCancel }) {
 
   useEffect(() => { api.get('/products', { params: { active: 1, per_page: 100 } }).then(({ data }) => setProducts(data.data)).catch(() => {}) }, [])
 
+  /** Code lu : ajoute le produit au transfert (ou +1 s'il y est déjà). */
+  async function scanLine(code) {
+    try {
+      const { data: p } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
+      setProducts((cur) => (cur.some((x) => x.id === p.id) ? cur : [...cur, p]))
+      setLines((cur) => {
+        const kept = cur.filter((l) => l.product_id || l.quantity) // retire la ligne vide de départ
+        const i = kept.findIndex((l) => String(l.product_id) === String(p.id))
+        if (i === -1) return [...kept, { product_id: String(p.id), quantity: '1' }]
+        return kept.map((l, k) => (k === i ? { ...l, quantity: String(Number(l.quantity || 0) + 1) } : l))
+      })
+      return `${p.name} : +1`
+    } catch (err) {
+      return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
+    }
+  }
+
   const setLine = (i, patch) => setLines(lines.map((l, k) => (k === i ? { ...l, ...patch } : l)))
 
   async function submit(e) {
@@ -96,6 +114,7 @@ function NewTransfer({ restricted, onDone, onCancel }) {
             {targets.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
           </select></div>
       )}
+      <div className="mb-2 flex justify-end"><ScanButton onScan={scanLine} continuous title="Scanner les produits à transférer" /></div>
       <table>
         <thead><tr><th>Produit</th><th className="num">Quantité</th><th /></tr></thead>
         <tbody>
@@ -127,12 +146,32 @@ function Detail({ id }) {
   const [received, setReceived] = useState({})
   const [error, setError] = useState(null)
   const [busy, setBusy] = useState(false)
+  const counting = useRef(false) // vrai dès le premier scan : on compte alors à partir de zéro
 
   const load = useCallback(() => api.get(`/transfers/${id}`).then(({ data }) => {
     setT(data)
     setReceived(Object.fromEntries(data.lines.map((l) => [l.id, l.received_quantity ?? l.quantity])))
   }).catch((e) => setError(parseError(e).message)), [id])
   useEffect(() => { load() }, [load])
+
+  /** Code lu à la réception : la quantité reçue de la ligne correspondante augmente de 1 (plafonnée à l'envoyé). */
+  async function scanReceive(code) {
+    let product
+    try {
+      product = (await api.get(`/products/barcode/${encodeURIComponent(code)}`)).data
+    } catch (err) {
+      return err.response?.status === 404 ? `Code inconnu : ${code}` : parseError(err).message
+    }
+    const line = t.lines.find((l) => l.product_id === product.id)
+    if (!line) return `« ${product.name} » ne fait pas partie de ce transfert.`
+    const first = !counting.current
+    counting.current = true
+    setReceived((cur) => {
+      const base = first ? Object.fromEntries(t.lines.map((l) => [l.id, 0])) : cur
+      return { ...base, [line.id]: Math.min(Number(base[line.id] ?? 0) + 1, Number(line.quantity)) }
+    })
+    return `${product.name} : +1`
+  }
 
   async function act(path, body) {
     setBusy(true); setError(null)
@@ -151,6 +190,7 @@ function Detail({ id }) {
           <p className="muted">{t.from?.name} → {t.to?.name} · <Link to="/transferts">← Tous les transferts</Link></p></div>
         <div className="head-actions">
           {canShip && <button className="btn btn-inline" disabled={busy} onClick={() => act('ship')}>Expédier</button>}
+          {canReceive && <ScanButton onScan={scanReceive} continuous title="Scanner la marchandise reçue" label="Scanner la réception" />}
           {canReceive && <button className="btn btn-inline" disabled={busy} onClick={() => act('receive', { lines: t.lines.map((l) => ({ id: l.id, received_quantity: Number(received[l.id]) })) })}>Confirmer la réception</button>}
           {canCancel && <button className="btn btn-secondary btn-inline" disabled={busy} onClick={() => act('cancel')}>Annuler</button>}
         </div>

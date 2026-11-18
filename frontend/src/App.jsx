@@ -15,6 +15,8 @@ import Landing from './pages/Landing'
 import ForgotPassword from './pages/ForgotPassword'
 import Support from './pages/Support'
 import Branches from './pages/Branches'
+import Inventory from './pages/Inventory'
+import Labels from './pages/Labels'
 import Transfers from './pages/Transfers'
 import Receipt from './pages/Receipt'
 import Login from './pages/Login'
@@ -110,6 +112,8 @@ export default function App() {
             <Route path="points-de-vente" element={guard('branches.manage', <Branches />)} />
             <Route path="transferts" element={guard('transfers.receive', <Transfers />)} />
             <Route path="transferts/:id" element={guard('transfers.receive', <Transfers />)} />
+            <Route path="produits/etiquettes" element={guard('products.view', <Labels />)} />
+            <Route path="inventaire" element={guard('stock.move', <Inventory />)} />
             <Route path="support" element={<Support />} />
             <Route path="support/:id" element={<Support />} />
             <Route path="avis" element={<Review />} />

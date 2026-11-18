@@ -67,6 +67,14 @@ Tout est stylé avec **Tailwind** : l'application React, la page vitrine et la c
 - **Console** : `frontend/src/console.css` compile vers `backend/public/console.css` (`cd frontend && npm run build:console`, ou `npm run watch:console` en développement). Les icônes se posent avec `<x-icon name="edit" />` (liste dans `backend/resources/icons.json`, généré depuis Lucide).
 - Le Dockerfile exécute les deux builds ; `console.css` et les polices sont des fichiers générés (non versionnés).
 
+### Codes-barres
+
+- **Lecteur physique** (USB/Bluetooth) : il tape le code puis Entrée, dans la caisse comme dans la recherche des produits.
+- **Caméra** (téléphone, tablette) : bouton « Scanner » à la caisse, dans la liste des produits, sur la fiche produit, à la réception d'une commande, dans les transferts et l'inventaire. Utilise `BarcodeDetector` quand le navigateur l'a, sinon ZXing (chargé à la demande). La caméra exige HTTPS (ou `localhost`).
+- **Inventaire** (menu « Inventaire ») : on scanne ou cherche les produits comptés, puis on valide ; seuls les produits comptés sont corrigés (mouvement « inventaire » tracé).
+- **Étiquettes** (Produits > Étiquettes) : planche A4 (3 colonnes) ou rouleau 58/80 mm ; EAN-13/EAN-8/UPC si la clé de contrôle est bonne, sinon Code 128.
+- **Codes internes** : EAN-13 commençant par `200` (plage GS1 réservée à l'usage interne), générés à la demande, sans collision avec les codes de fabricants.
+
 ### Points de vente (multi-magasins)
 
 Chaque entreprise a un **siège** et autant de **points de vente** que souhaité (menu « Points de vente »). Chaque point de vente a son stock, ses ventes, sa caisse (une caisse ouverte par point de vente) et ses prix locaux éventuels. Son stock vient du **siège par transferts** (demandé, expédié, reçu ; un écart de réception est signalé). Les achats fournisseurs, le catalogue et les utilisateurs restent au siège. Un utilisateur rattaché à un point de vente ne voit que celle-ci ; un utilisateur du siège choisit « Toutes » ou un point de vente (en-tête `X-Branch`). Le nombre de points de vente est limitable par forfait dans la console (vide = illimité).

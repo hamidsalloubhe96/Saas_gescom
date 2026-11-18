@@ -279,6 +279,9 @@
   :root { --bg: #fff; --surface: #fff; --text: #000; --muted: #444; --border: #bbb; }
   body { background: #fff; }
   .no-print, .toolbar, .pager, .plan-banner, [data-app-nav] { display: none !important; }
+  /* Sans le menu, le contenu occupe toute la page (factures, tickets, étiquettes). */
+  [data-app-shell] { display: block !important; }
+  [data-app-shell] > main { padding: 0 !important; }
   .print-only { display: block; }
   .sheet { border: 0; padding: 0; }
   .pill { border: 1px solid #999; background: none; color: #000; }

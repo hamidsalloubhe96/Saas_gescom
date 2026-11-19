@@ -3,7 +3,7 @@ import { Link, Navigate, useNavigate } from 'react-router-dom'
 import api, { storage } from '../api'
 import { useAuth } from '../auth'
 import {
-  AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
+  AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CloseIcon, MenuIcon, NextIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
   DevicesIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
 } from '../components/ui'
 import Showcase from '../components/landing/Showcase'
@@ -143,6 +143,17 @@ export default function Landing() {
   const [scrolled, setScrolled] = useState(false)
   const [faqAll, setFaqAll] = useState(false) // FAQ repliée au-delà de 5 questions
   const [callOpen, setCallOpen] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Menu mobile : se ferme avec Échap ou quand l'écran devient large.
+  useEffect(() => {
+    if (!menuOpen) return undefined
+    const onKey = (e) => e.key === 'Escape' && setMenuOpen(false)
+    const onResize = () => window.innerWidth >= 1024 && setMenuOpen(false)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('resize', onResize)
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('resize', onResize) }
+  }, [menuOpen])
 
   useEffect(() => {
     api.get('/public/config').then(({ data }) => setConfig(data)).catch(() => {})
@@ -190,9 +201,29 @@ export default function Landing() {
             <button type="button" onClick={() => setFinding(true)} className={cn(btnOutline, 'px-3 sm:px-5')}>
               <SearchIcon className="size-[18px]" aria-hidden="true" /> <span className="hidden sm:inline">Rechercher mon entreprise</span><span className="sr-only sm:hidden">Rechercher mon entreprise</span>
             </button>
-            <Link to="/login" className={btnSolid}><AccountIcon className="size-[18px]" aria-hidden="true" /> Connexion</Link>
+            <Link to="/login" className={cn(btnSolid, 'px-3 sm:px-5')}>
+              <AccountIcon className="size-[18px]" aria-hidden="true" /> <span className="sr-only sm:not-sr-only">Connexion</span>
+            </Link>
+            <button type="button" onClick={() => setMenuOpen((o) => !o)} aria-expanded={menuOpen} aria-controls="menu-mobile"
+              aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+              className="inline-flex size-11 items-center justify-center rounded-lg border border-line bg-surface text-ink transition-colors hover:bg-bg lg:hidden">
+              {menuOpen ? <CloseIcon className="size-5" aria-hidden="true" /> : <MenuIcon className="size-5" aria-hidden="true" />}
+            </button>
           </div>
         </div>
+        {menuOpen && (
+          <nav id="menu-mobile" aria-label="Menu" className="border-t border-line bg-surface lg:hidden">
+            {NAV.map(([id, label]) => (
+              <a key={id} href={`#${id}`} onClick={(e) => { go(id)(e); setMenuOpen(false) }}
+                className="flex items-center justify-between border-b border-line px-5 py-3.5 text-ink no-underline hover:bg-bg">
+                {label}<NextIcon className="size-4 text-muted" aria-hidden="true" />
+              </a>
+            ))}
+            <div className="p-4">
+              <Link to={startLink} className={cn(btnSolid, 'w-full')}>Créer mon espace gratuitement</Link>
+            </div>
+          </nav>
+        )}
       </header>
 
       <section id="accueil" className="scroll-mt-16 bg-brand-900 text-white">

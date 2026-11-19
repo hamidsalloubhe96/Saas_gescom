@@ -28,6 +28,8 @@ export {
   PackageCheck as ReceiveIcon,
   LoaderCircle as SpinnerIcon,
   Menu as MenuIcon,
+  Sun as SunIcon,
+  Moon as MoonIcon,
   LogOut as LogoutIcon,
   MessageSquare as FeedbackIcon,
   LayoutDashboard as DashboardIcon,

@@ -56,7 +56,13 @@
                 <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>
                 <span class="leading-tight">Salloubhe Gescom<small class="block text-[.65rem] font-medium tracking-wider text-side-ink">CONSOLE</small></span>
             </span>
-            <button type="button" onclick="toggleDrawer(false)" aria-label="Fermer le menu" class="grid size-10 place-items-center rounded-lg hover:bg-side-hover hover:text-white lg:hidden"><x-icon name="close" class="size-5" /></button>
+            <div class="flex shrink-0 items-center gap-1">
+                <button type="button" onclick="toggleTheme()" aria-label="Changer de thème (clair ou sombre)" title="Thème clair / sombre"
+                        class="grid size-10 place-items-center rounded-lg text-side-ink hover:bg-side-hover hover:text-white">
+                    <x-icon name="sun" class="hidden size-5 [[data-theme=dark]_&]:block" /><x-icon name="moon" class="size-5 [[data-theme=dark]_&]:hidden" />
+                </button>
+                <button type="button" onclick="toggleDrawer(false)" aria-label="Fermer le menu" class="grid size-10 place-items-center rounded-lg hover:bg-side-hover hover:text-white lg:hidden"><x-icon name="close" class="size-5" /></button>
+            </div>
         </div>
         <nav aria-label="Navigation de la console" class="-mr-2 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-2 [scrollbar-color:rgba(255,255,255,.25)_transparent] [scrollbar-width:thin]">
             @foreach($groups as $title => $items)
@@ -70,15 +76,15 @@
                     @endforeach
                 @endif
             @endforeach
-            <div class="px-3 pb-1 pt-3 text-[.68rem] font-semibold tracking-wider text-side-ink/70">COMPTE</div>
-            <a href="{{ route('console.password') }}" class="{{ $navLink(request()->routeIs('console.password*', 'console.twofactor.setup*')) }}"><x-icon name="account" />Mon compte</a>
         </nav>
-        <div class="grid shrink-0 gap-1 border-t border-white/10 px-1 pt-3 text-sm">
-            <strong class="truncate text-white">{{ $admin->name }}</strong>
-            <span class="text-xs">{{ $admin->roleLabel() }}</span>
-            <button type="button" onclick="toggleTheme()" class="btn btn-ghost btn-sm mt-2"><x-icon name="theme" class="size-4" />Thème clair / sombre</button>
+        <div class="grid shrink-0 gap-1 border-t border-white/10 pt-3 text-sm">
+            <a href="{{ route('console.password') }}" class="{{ $navLink(request()->routeIs('console.password*', 'console.twofactor.setup*')) }}"><x-icon name="account" />Mon compte</a>
+            <div class="grid px-3">
+                <strong class="truncate text-white">{{ $admin->name }}</strong>
+                <span class="text-xs">{{ $admin->roleLabel() }}</span>
+            </div>
             <form method="POST" action="{{ route('console.logout') }}">@csrf
-                <button class="btn btn-ghost"><x-icon name="logout" class="size-4" />Se déconnecter</button>
+                <button class="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-side-ink transition-colors hover:text-white"><x-icon name="logout" class="size-4" />Se déconnecter</button>
             </form>
         </div>
     </aside>

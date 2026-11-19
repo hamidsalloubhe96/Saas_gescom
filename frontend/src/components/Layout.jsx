@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { cn } from '../lib/cn'
+import { useTheme } from '../lib/theme'
 import Announcements from './Announcements'
 import BranchSwitcher from './BranchSwitcher'
 import NewVersionBanner from './NewVersionBanner'
 import SubscriptionBanner from './SubscriptionBanner'
 import {
-  AccountIcon, BillingIcon, BranchesIcon, Brand, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon,
-  PosIcon, ProductsIcon, PurchasesIcon, SuppliersIcon, SupportIcon, TransfersIcon, UsersIcon,
+  AccountIcon, BillingIcon, BranchesIcon, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon, MoonIcon,
+  PosIcon, ProductsIcon, PurchasesIcon, SuppliersIcon, SunIcon, SupportIcon, TransfersIcon, UsersIcon,
 } from './ui'
 
 // Chaque entrée n'apparaît que si le rôle de l'utilisateur a la permission correspondante.
@@ -35,7 +36,8 @@ const link = ({ isActive }) => cn(
 )
 
 export default function Layout() {
-  const { user, tenant, logout, can, platform } = useAuth()
+  const { user, tenant, company, logout, can, platform } = useAuth()
+  const { theme, toggle } = useTheme()
   const imp = platform.impersonation
   const location = useLocation()
   const [open, setOpen] = useState(false) // tiroir du menu sur mobile
@@ -57,27 +59,33 @@ export default function Layout() {
           className="grid size-10 place-items-center rounded-lg text-side-ink transition-colors hover:bg-side-hover hover:text-white">
           <MenuIcon className="size-5" aria-hidden="true" />
         </button>
-        <Brand light />
+        <span className="min-w-0 break-words font-display text-lg font-semibold leading-tight text-white">{company || tenant}</span>
       </header>
 
       {open && <div className="fixed inset-0 z-40 bg-black/55 lg:hidden" onClick={() => setOpen(false)} aria-hidden="true" />}
 
       <aside id="app-sidebar" data-app-nav
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col gap-5 overflow-y-auto bg-side p-4 text-side-ink transition-transform duration-200 ease-out',
+          'fixed inset-y-0 left-0 z-50 flex w-64 flex-col gap-4 overflow-hidden bg-side p-4 text-side-ink transition-transform duration-200 ease-out',
           'lg:sticky lg:top-0 lg:z-auto lg:h-screen lg:translate-x-0',
           open ? 'translate-x-0' : '-translate-x-full',
         )}>
-        <div className="flex items-center justify-between px-1">
-          <Brand light />
-          <button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu"
-            className="grid size-10 place-items-center rounded-lg text-side-ink hover:bg-side-hover hover:text-white lg:hidden">
-            <CloseIcon className="size-5" aria-hidden="true" />
-          </button>
+        <div className="flex items-center justify-between gap-2 px-1">
+          <span className="min-w-0 break-words font-display text-lg font-semibold leading-tight text-white">{company || tenant}</span>
+          <div className="flex shrink-0 items-center gap-1">
+            <button type="button" onClick={toggle} aria-label={theme === 'dark' ? 'Passer au thème clair' : 'Passer au thème sombre'}
+              title={theme === 'dark' ? 'Thème clair' : 'Thème sombre'}
+              className="grid size-10 place-items-center rounded-lg text-side-ink transition-colors hover:bg-side-hover hover:text-white">
+              {theme === 'dark' ? <SunIcon className="size-5" aria-hidden="true" /> : <MoonIcon className="size-5" aria-hidden="true" />}
+            </button>
+            <button type="button" onClick={() => setOpen(false)} aria-label="Fermer le menu"
+              className="grid size-10 place-items-center rounded-lg text-side-ink hover:bg-side-hover hover:text-white lg:hidden">
+              <CloseIcon className="size-5" aria-hidden="true" />
+            </button>
+          </div>
         </div>
-
-        <nav aria-label="Navigation principale" className="flex flex-col gap-0.5">
-          {NAV.filter((n) => !n.perm || can(n.perm)).map(({ to, label, end, icon: Icon }) => (
+        <nav aria-label="Navigation principale" className="-mr-2 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-2 [scrollbar-color:rgba(255,255,255,.25)_transparent] [scrollbar-width:thin]">
+          {NAV.filter((n) => n.to !== '/compte' && (!n.perm || can(n.perm))).map(({ to, label, end, icon: Icon }) => (
             <NavLink key={to} to={to} end={end} className={link}>
               <Icon className="size-[18px] shrink-0" aria-hidden="true" />
               {label}
@@ -85,18 +93,20 @@ export default function Layout() {
           ))}
         </nav>
 
-        <div className="mt-auto flex flex-col gap-1 px-1">
+        <div className="flex shrink-0 flex-col gap-1 border-t border-white/10 pt-3">
           <BranchSwitcher />
-          <span className="mb-1 w-fit rounded-full bg-side-hover px-2.5 py-0.5 font-mono text-xs text-white" title="Identifiant de l'entreprise">{tenant}</span>
-          <div className="flex flex-col overflow-hidden text-sm">
+          <NavLink to="/compte" className={link}>
+            <AccountIcon className="size-[18px] shrink-0" aria-hidden="true" /> Mon compte
+          </NavLink>
+          <div className="flex flex-col overflow-hidden px-3 text-sm">
             <strong className="truncate text-white">{user.name}</strong>
             <span className="truncate text-xs">{user.role_label}</span>
           </div>
-          <NavLink to="/avis" className="mt-2 flex items-center gap-2 text-sm text-side-ink no-underline hover:text-white">
+          <NavLink to="/avis" className="mt-1 flex items-center gap-2 px-3 py-1.5 text-sm text-side-ink no-underline hover:text-white">
             <FeedbackIcon className="size-4" aria-hidden="true" /> Donner mon avis
           </NavLink>
           <button type="button" onClick={logout}
-            className="mt-2 inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-white/15 text-sm font-semibold text-side-ink transition-colors hover:bg-side-hover hover:text-white">
+            className="flex items-center gap-2 px-3 py-1.5 text-left text-sm text-side-ink transition-colors hover:text-white">
             <LogoutIcon className="size-4" aria-hidden="true" /> Se déconnecter
           </button>
         </div>

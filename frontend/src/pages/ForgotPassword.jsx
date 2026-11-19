@@ -36,7 +36,7 @@ export default function ForgotPassword() {
   if (user) return <Navigate to="/" replace />
 
   const set = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-  const tenant = () => form.tenant.trim().toLowerCase()
+  const tenant = () => form.tenant.trim().toLowerCase().replace(/\s+/g, '_')
 
   async function run(fn) {
     setBusy(true)

@@ -41,7 +41,7 @@ export default function Login() {
       return
     }
     try {
-      await login({ ...form, tenant: form.tenant.trim().toLowerCase(), remember, captcha })
+      await login({ ...form, tenant: form.tenant.trim().toLowerCase().replace(/\s+/g, '_'), remember, captcha })
       navigate('/', { replace: true })
     } catch (err) {
       const parsed = parseError(err)

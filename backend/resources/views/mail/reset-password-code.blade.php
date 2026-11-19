@@ -5,6 +5,6 @@
 <p>Voici votre code pour réinitialiser votre mot de passe ({{ $audience }}) :</p>
 <p style="font-size:2rem;font-weight:700;letter-spacing:.3rem;font-family:monospace">{{ $code }}</p>
 <p>Il est valable {{ $minutes }} minutes et ne fonctionne qu'une fois. Si vous n'êtes pas à l'origine de cette demande, ignorez ce message : votre mot de passe reste inchangé.</p>
-<p>L'équipe GestCom</p>
+<p>L'équipe Salloubhe Gescom</p>
 </body>
 </html>

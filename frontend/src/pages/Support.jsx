@@ -92,7 +92,7 @@ function Thread({ id }) {
       <section className="panel" style={{ maxWidth: 720 }}>
         {ticket.messages.map((m) => (
           <div key={m.id} style={{ padding: '.6rem 0', borderBottom: '1px solid var(--border)' }}>
-            <strong>{m.author_type === 'admin' ? 'Équipe GestCom' : m.author_name}</strong> <span className="muted small">{fmtDate(m.created_at)}</span>
+            <strong>{m.author_type === 'admin' ? 'Équipe Salloubhe Gescom' : m.author_name}</strong> <span className="muted small">{fmtDate(m.created_at)}</span>
             <p style={{ whiteSpace: 'pre-line', margin: '.3rem 0' }}>{m.body}</p>
           </div>
         ))}

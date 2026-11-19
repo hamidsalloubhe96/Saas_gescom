@@ -21,7 +21,7 @@ export default function LegalPage() {
   return (
     <main className="legal">
       <nav className="legal-nav" aria-label="Textes légaux">
-        <Link to="/login">← GestCom</Link>
+        <Link to="/login">← Salloubhe Gescom</Link>
         {LEGAL_LINKS.map(([k, label]) => <Link key={k} to={`/legal/${k}`} className={k === key ? 'on' : ''}>{label}</Link>)}
       </nav>
       {error && <p role="alert" className="alert">{error}</p>}

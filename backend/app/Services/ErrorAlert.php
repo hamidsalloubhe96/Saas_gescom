@@ -31,12 +31,12 @@ class ErrorAlert
         try {
             $body = ($context ? "{$context}\n\n" : '').get_class($e).': '.$e->getMessage()."\n"
                 .$e->getFile().':'.$e->getLine()."\n\n".'Application : '.config('app.name').' ('.config('app.url').")\n".'Date : '.now()->toDateTimeString();
-            Mail::raw($body, fn ($m) => $m->to(config('console.alert_email'))->subject('[GestCom] Erreur : '.mb_substr($e->getMessage(), 0, 80)));
+            Mail::raw($body, fn ($m) => $m->to(config('console.alert_email'))->subject('[Salloubhe Gescom] Erreur : '.mb_substr($e->getMessage(), 0, 80)));
 
             return true;
         } catch (Throwable $mailError) {
             // Dernier recours : si l'envoi échoue, une ligne dans les journaux du serveur.
-            error_log('GestCom : alerte d\'erreur non envoyée ('.$mailError->getMessage().') pour : '.$e->getMessage());
+            error_log('Salloubhe Gescom : alerte d\'erreur non envoyée ('.$mailError->getMessage().') pour : '.$e->getMessage());
 
             return false;
         }

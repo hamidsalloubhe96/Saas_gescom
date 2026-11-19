@@ -19,7 +19,7 @@ services:
     autoDeployTrigger: commit
     envVars:
       - key: APP_NAME
-        value: GestCom
+        value: Salloubhe Gescom
       - key: APP_ENV
         value: production
       - key: APP_DEBUG

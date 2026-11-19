@@ -16,7 +16,7 @@ class SubscriptionReminder extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: $this->kind === 'expiring' ? 'Votre abonnement GestCom arrive à échéance' : 'Votre abonnement GestCom est arrivé à échéance');
+        return new Envelope(subject: $this->kind === 'expiring' ? 'Votre abonnement Salloubhe Gescom arrive à échéance' : 'Votre abonnement Salloubhe Gescom est arrivé à échéance');
     }
 
     public function content(): Content

@@ -23,7 +23,7 @@ export default function NewVersionBanner() {
   if (!fresh) return null
   return (
     <div className="plan-banner" role="status">
-      <span>Une nouvelle version de GestCom est disponible.</span>
+      <span>Une nouvelle version de Salloubhe Gescom est disponible.</span>
       <button type="button" className="btn btn-inline" onClick={() => window.location.reload()}>Actualiser</button>
     </div>
   )

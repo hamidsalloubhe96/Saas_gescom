@@ -7,6 +7,6 @@
 @else
 <p>L'abonnement de <strong>{{ $company }}</strong> est arrivé à échéance le <strong>{{ $date }}</strong>. Vos données sont conservées : réglez votre abonnement depuis la page « Abonnement » pour retrouver l'accès complet.</p>
 @endif
-<p>L'équipe GestCom</p>
+<p>L'équipe Salloubhe Gescom</p>
 </body>
 </html>

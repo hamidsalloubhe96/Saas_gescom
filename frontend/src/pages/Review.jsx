@@ -40,7 +40,7 @@ export default function Review() {
     <>
       <header className="page-head">
         <h1>Donner mon avis</h1>
-        <p className="muted">Votre retour nous aide à améliorer GestCom.</p>
+        <p className="muted">Votre retour nous aide à améliorer Salloubhe Gescom.</p>
       </header>
       <section className="panel" style={{ maxWidth: 640 }}>
         {error && <div role="alert" className="alert">{error}</div>}

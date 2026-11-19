@@ -8,3 +8,10 @@ createRoot(document.getElementById('root')).render(
     <App />
   </StrictMode>,
 )
+
+// Application installable : le service worker n'est actif qu'en production (il gêne le rechargement à chaud en développement).
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  const register = () => navigator.serviceWorker.register('/sw.js').catch(() => {})
+  if (document.readyState === 'complete') register()
+  else window.addEventListener('load', register)
+}

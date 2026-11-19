@@ -17,7 +17,7 @@ class FounderAccess extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: "Vos accès GestCom : {$this->tenant->name}");
+        return new Envelope(subject: "Vos accès Salloubhe Gescom : {$this->tenant->name}");
     }
 
     public function content(): Content

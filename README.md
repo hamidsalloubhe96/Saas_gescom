@@ -1,4 +1,4 @@
-# GestCom : gestion commerciale multi-entreprises
+# Salloubhe Gescom : gestion commerciale multi-entreprises
 
 Laravel (API, PostgreSQL, une base commune avec **un schéma par entreprise**) + interface React.
 En production, **un seul service** : Laravel sert l'API *et* l'interface.
@@ -38,7 +38,7 @@ Le CORS n'est utile qu'en local (ports différents) : `FRONTEND_URL` dans `backe
 2. Renseigner `APP_KEY` (`php artisan key:generate --show` en local), `APP_URL` (adresse du service) et `CENTRAL_DOMAINS` (son nom d'hôte).
 3. Vérifier `https://<service>.onrender.com/up` puis ouvrir `/register` pour créer la première entreprise.
 
-## Console de la plateforme (équipe GestCom)
+## Console de la plateforme (équipe Salloubhe Gescom)
 
 Pages Blade sur **`/console`**, dans le même service, avec sa propre connexion (garde `admin`, table `platform_admins`),
 totalement séparée de l'application React et des utilisateurs des entreprises.
@@ -103,7 +103,7 @@ L'offre gratuite de Render bloque le SMTP sortant (ports 25, 465, 587) : l'envoi
 
 1. Créer un compte Brevo et valider l'adresse expéditeur (*Expéditeurs et IP*), sans nom de domaine nécessaire.
 2. Générer une clé API (*SMTP & API* > *Clés API*).
-3. Sur Render : `MAIL_MAILER=brevo`, `BREVO_API_KEY=<clé>`, `MAIL_FROM_ADDRESS=<l'expéditeur validé>`, `MAIL_FROM_NAME=GestCom`. Supprimer `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
+3. Sur Render : `MAIL_MAILER=brevo`, `BREVO_API_KEY=<clé>`, `MAIL_FROM_ADDRESS=<l'expéditeur validé>`, `MAIL_FROM_NAME=Salloubhe Gescom`. Supprimer `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`.
 
 ### Premier démarrage sans e-mail (premier administrateur et première entreprise)
 

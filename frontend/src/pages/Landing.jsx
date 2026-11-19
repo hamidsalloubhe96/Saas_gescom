@@ -6,6 +6,7 @@ import {
   AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CloseIcon, MenuIcon, NextIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
   DevicesIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
 } from '../components/ui'
+import InstallApp from '../components/InstallApp'
 import Showcase from '../components/landing/Showcase'
 import { cn } from '../lib/cn'
 import { fmtMoney } from '../lib/format'
@@ -32,7 +33,7 @@ const FEATURES = [
 ]
 
 const FAQ = [
-  ['Que puis-je faire avec GestCom ?', 'Gérer vos clients et fournisseurs, votre catalogue et votre stock, établir devis et factures, suivre vos achats et encaisser au comptoir avec la caisse, le tout dans un seul espace.'],
+  ['Que puis-je faire avec Salloubhe Gescom ?', 'Gérer vos clients et fournisseurs, votre catalogue et votre stock, établir devis et factures, suivre vos achats et encaisser au comptoir avec la caisse, le tout dans un seul espace.'],
   ['Puis-je encaisser mes clients directement au comptoir ?', 'Oui. La caisse permet de vendre en quelques clics, d’imprimer un ticket et de clôturer la journée. Le stock se met à jour automatiquement à chaque vente.'],
   ['Serai-je prévenu quand un produit va manquer ?', 'Oui. Définissez un seuil par produit : les articles en stock bas sont signalés dans votre tableau de bord pour que vous puissiez réapprovisionner à temps.'],
   ['Puis-je transformer un devis en facture ?', 'Oui, en un clic, sans ressaisie. Vous suivez ensuite les paiements, y compris les paiements partiels, et voyez d’un coup d’œil ce qui reste impayé.'],
@@ -40,7 +41,7 @@ const FAQ = [
   ['Puis-je gérer plusieurs points de vente ?', 'Oui, autant que vous voulez. Le siège envoie du stock à chaque point de vente par transfert, voit les ventes et le stock de tous, et chaque responsable ne voit que son propre point de vente.'],
   ['Mes employés peuvent-ils tous voir mes chiffres ?', 'Non. Chaque personne a un rôle (gérant, vendeur, caissier, magasinier, comptable) et ne voit que ce qui la concerne. Un caissier n’a pas accès à vos marges, par exemple.'],
   ['Mes données sont-elles séparées de celles des autres entreprises ?', 'Oui. Chaque entreprise dispose de son propre espace de données, isolé des autres. Personne d’autre que votre équipe n’y accède.'],
-  ['Puis-je l’utiliser sur téléphone ou tablette ?', 'GestCom fonctionne dans le navigateur : rien à installer. Ouvrez-le sur ordinateur, tablette ou téléphone, avec le même compte.'],
+  ['Puis-je l’utiliser sur téléphone ou tablette ?', 'Salloubhe Gescom fonctionne dans le navigateur : rien à installer. Ouvrez-le sur ordinateur, tablette ou téléphone, avec le même compte.'],
   ['Faut-il une carte bancaire pour essayer ?', 'Non. L’essai est gratuit et ne demande aucune carte bancaire. Vous créez votre espace en quelques minutes.'],
   ['Que se passe-t-il à la fin de l’essai ?', 'Vos données sont conservées. Vous choisissez un forfait et réglez depuis la page « Abonnement » pour continuer, sans rien perdre.'],
   ['Comment régler mon abonnement ?', 'Vous déclarez votre paiement (virement, mobile money, espèces) avec sa référence ; notre équipe le valide et vous recevez un reçu imprimable.'],
@@ -221,6 +222,7 @@ export default function Landing() {
             ))}
             <div className="p-4">
               <Link to={startLink} className={cn(btnSolid, 'w-full')}>Créer mon espace gratuitement</Link>
+              <InstallApp className="mt-2 [&>button]:w-full" />
             </div>
           </nav>
         )}
@@ -234,7 +236,7 @@ export default function Landing() {
             </span>
             <h1 className="mt-5 text-4xl leading-[1.1] text-white sm:text-5xl">Donnez une nouvelle dimension à la gestion de votre commerce.</h1>
             <p className="mt-5 max-w-xl text-lg text-brand-100">
-              Avec GestCom, profitez d’une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire. Utilisable sur ordinateur, tablette et téléphone, sans rien installer.
+              Avec Salloubhe Gescom, profitez d’une solution complète qui réunit clients, stock, ventes, achats et caisse. Maîtrisez vos opérations et pilotez votre activité avec une vision claire. Utilisable sur ordinateur, tablette et téléphone, sans rien installer.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link to={startLink} className={btnWhite}>{open ? 'Créer mon espace gratuitement' : 'Demander un accès'} <ArrowRightIcon className="size-[18px]" aria-hidden="true" /></Link>
@@ -253,9 +255,9 @@ export default function Landing() {
           <div className="grid justify-items-center gap-3">
           {/* Maquette d'appareils : les captures réelles (données fictives) sont placées DERRIÈRE l'image, dont les écrans sont transparents. */}
           <div className="relative mx-auto aspect-square w-full max-w-xl motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both] lg:max-w-none lg:scale-[1.2]">
-            <img src="/dashboard-demo.png" width="1940" height="1213" alt="Tableau de bord GestCom sur ordinateur, avec des données fictives" className="absolute object-cover object-top-left"
+            <img src="/dashboard-demo.png" width="1940" height="1213" alt="Tableau de bord Salloubhe Gescom sur ordinateur, avec des données fictives" className="absolute object-cover object-top-left"
               style={{ left: '16%', top: '21.2%', width: '67.6%', height: '42.2%' }} />
-            <img src="/dashboard-demo-mobile.png" width="1170" height="2505" alt="Tableau de bord GestCom sur téléphone, avec des données fictives" className="absolute object-cover object-top"
+            <img src="/dashboard-demo-mobile.png" width="1170" height="2505" alt="Tableau de bord Salloubhe Gescom sur téléphone, avec des données fictives" className="absolute object-cover object-top"
               style={{ left: '77.8%', top: '47.8%', width: '15.6%', height: '33.4%' }} />
             <img src="/device-mockup.png" width="500" height="500" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" />
           </div>
@@ -292,7 +294,7 @@ export default function Landing() {
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <Reveal>
             <h2 className="text-3xl font-semibold">À propos</h2>
-            <p className="mt-4 text-muted">GestCom aide les commerces à remplacer cahiers et tableurs par un outil unique, fiable et accessible depuis n’importe quel appareil.</p>
+            <p className="mt-4 text-muted">Salloubhe Gescom aide les commerces à remplacer cahiers et tableurs par un outil unique, fiable et accessible depuis n’importe quel appareil.</p>
             <p className="mt-3 text-muted">Chaque entreprise travaille dans son propre espace sécurisé : vos données restent les vôtres, isolées de celles des autres.</p>
           </Reveal>
           <ul className="m-0 grid list-none gap-3 p-0">
@@ -404,7 +406,7 @@ export default function Landing() {
         </div>
         <div className="border-t border-white/10">
           <div className="mx-auto flex w-full max-w-6xl flex-wrap justify-between gap-3 px-5 py-4 text-sm">
-            <span>© {new Date().getFullYear()} GestCom. Tous droits réservés.</span>
+            <span>© {new Date().getFullYear()} Salloubhe Gescom. Tous droits réservés.</span>
             <span className="flex flex-wrap gap-x-5 gap-y-1">
               {[['terms', 'Conditions'], ['privacy', 'Confidentialité'], ['subscription', 'Abonnement'], ['legal_notice', 'Mentions légales']].map(([k, l]) => (
                 <Link key={k} to={`/legal/${k}`} className="text-side-ink no-underline hover:text-white hover:underline">{l}</Link>

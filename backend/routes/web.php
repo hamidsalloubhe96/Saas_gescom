@@ -24,7 +24,7 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Console de la plateforme (équipe GestCom) : pages Blade, session séparée (garde "admin").
+| Console de la plateforme (équipe Salloubhe Gescom) : pages Blade, session séparée (garde "admin").
 | Totalement indépendante de l'application React et des utilisateurs des entreprises.
 |--------------------------------------------------------------------------
 */

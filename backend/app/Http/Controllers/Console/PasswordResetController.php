@@ -36,7 +36,7 @@ class PasswordResetController extends Controller
             throw ValidationException::withMessages(['email' => "Un code vient d'être envoyé. Patientez {$wait} s."]);
         }
 
-        $codes->send(self::SCOPE, $admin->email, 'console GestCom');
+        $codes->send(self::SCOPE, $admin->email, 'console Salloubhe Gescom');
         AuditLog::record('auth.reset_code_sent', "Code de réinitialisation envoyé à {$admin->email}", null, [], $admin);
         $request->session()->put('console.reset_email', $admin->email);
 

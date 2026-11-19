@@ -2,6 +2,7 @@ import { useState } from 'react'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Field from '../components/Field'
+import InstallApp from '../components/InstallApp'
 import { PasswordField } from '../components/ui'
 
 /** Mon compte : nom, e-mail et mot de passe de l'utilisateur connecté. */
@@ -55,6 +56,7 @@ export default function Account() {
         <h1>Mon compte</h1>
         <p className="muted">{user.email} · {user.role_label}</p>
       </header>
+      <InstallApp className="mb-4" />
 
       <section className="panel">
         <h2>Informations</h2>

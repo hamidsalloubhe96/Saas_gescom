@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'Connexion') · GestCom Console</title>
+    <title>@yield('title', 'Connexion') · Salloubhe Gescom Console</title>
     @include('console._styles')
     @stack('head')
 </head>
@@ -16,22 +16,22 @@
             <span class="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full border border-white/10" aria-hidden="true"></span>
             <span class="pointer-events-none absolute -bottom-10 -right-10 size-56 rounded-full border border-white/10" aria-hidden="true"></span>
             <span class="inline-flex items-center gap-2.5 font-display text-lg font-semibold text-white">
-                <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>GestCom
+                <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>Salloubhe Gescom
             </span>
             <div class="mt-12">
                 <p class="text-sm font-semibold text-brand-300">Console de la plateforme</p>
-                <h2 class="mt-2 text-3xl font-semibold leading-tight text-white">Administration de GestCom</h2>
+                <h2 class="mt-2 text-3xl font-semibold leading-tight text-white">Administration de Salloubhe Gescom</h2>
                 <p class="mt-3 max-w-xs text-[.95rem]">Suivi des entreprises, des abonnements et des paiements de la plateforme.</p>
             </div>
             <p class="relative mt-auto flex items-center gap-2 pt-10 text-sm text-white/80">
                 <span class="grid size-6 place-items-center rounded-md border border-white/25"><x-icon name="team" class="size-3.5" /></span>
-                Accès réservé à l’équipe GestCom
+                Accès réservé à l’équipe Salloubhe Gescom
             </p>
         </aside>
 
         <section class="p-6 sm:p-9">
             <div class="mb-5 inline-flex items-center gap-2.5 font-display text-lg font-semibold lg:hidden">
-                <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>GestCom Console
+                <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>Salloubhe Gescom Console
             </div>
             @include('console._flash')
             @yield('content')

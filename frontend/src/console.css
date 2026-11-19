@@ -7,7 +7,7 @@
 @source "../../backend/resources/views";
 
 /*
- * Console GestCom : mêmes jetons que l'application (theme.css), composants propres aux pages Blade.
+ * Console Salloubhe Gescom : mêmes jetons que l'application (theme.css), composants propres aux pages Blade.
  * Les vues utilisent ces classes (btn, panel, pill-*, field…) ; la mise en page (menu, tiroir mobile) est en utilitaires.
  */
 @layer components {

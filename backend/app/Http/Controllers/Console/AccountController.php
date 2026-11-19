@@ -70,7 +70,7 @@ class AccountController extends Controller
 
         // Le secret reste en session tant que l'admin n'a pas prouvé qu'il sait générer un code.
         $secret = $request->session()->get('console.2fa_setup') ?? tap($google2fa->generateSecretKey(), fn ($s) => $request->session()->put('console.2fa_setup', $s));
-        $uri = $google2fa->getQRCodeUrl('GestCom Console', $admin->email, $secret);
+        $uri = $google2fa->getQRCodeUrl('Salloubhe Gescom Console', $admin->email, $secret);
 
         return view('console.twofactor-setup', ['enabled' => false, 'secret' => $secret, 'uri' => $uri]);
     }

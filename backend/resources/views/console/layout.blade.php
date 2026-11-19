@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <title>@yield('title', 'Console') · GestCom Console</title>
+    <title>@yield('title', 'Console') · Salloubhe Gescom Console</title>
     @include('console._styles')
 </head>
 <body>
@@ -46,7 +46,7 @@
     <header class="sticky top-0 z-30 flex items-center gap-3 bg-side px-4 py-2.5 text-white lg:hidden">
         <button type="button" id="console-menu-btn" onclick="toggleDrawer(true)" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="console-sidebar"
                 class="grid size-10 place-items-center rounded-lg text-side-ink hover:bg-side-hover hover:text-white"><x-icon name="menu" class="size-5" /></button>
-        <span class="font-display font-semibold">GestCom <span class="text-xs font-normal text-side-ink">Console</span></span>
+        <span class="font-display font-semibold">Salloubhe Gescom <span class="text-xs font-normal text-side-ink">Console</span></span>
     </header>
     <div id="console-overlay" class="fixed inset-0 z-40 hidden bg-black/55 lg:hidden" onclick="toggleDrawer(false)" aria-hidden="true"></div>
 
@@ -54,7 +54,7 @@
         <div class="flex items-center justify-between px-1">
             <span class="inline-flex items-center gap-2.5 font-display text-lg font-semibold text-white">
                 <span class="grid size-8 place-items-center rounded-lg bg-accent text-sm font-bold text-on-accent" aria-hidden="true">G</span>
-                <span class="leading-tight">GestCom<small class="block text-[.65rem] font-medium tracking-wider text-side-ink">CONSOLE</small></span>
+                <span class="leading-tight">Salloubhe Gescom<small class="block text-[.65rem] font-medium tracking-wider text-side-ink">CONSOLE</small></span>
             </span>
             <button type="button" onclick="toggleDrawer(false)" aria-label="Fermer le menu" class="grid size-10 place-items-center rounded-lg hover:bg-side-hover hover:text-white lg:hidden"><x-icon name="close" class="size-5" /></button>
         </div>

@@ -15,7 +15,7 @@ class VerifyEmailCode extends Mailable
 
     public function envelope(): Envelope
     {
-        return new Envelope(subject: 'Votre code de vérification GestCom');
+        return new Envelope(subject: 'Votre code de vérification Salloubhe Gescom');
     }
 
     public function content(): Content

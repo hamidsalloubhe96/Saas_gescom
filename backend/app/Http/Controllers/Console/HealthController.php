@@ -169,7 +169,7 @@ class HealthController extends Controller
         $to = config('console.alert_email') ?: $request->user('admin')->email;
 
         try {
-            Mail::raw('Ceci est un e-mail de test envoyé depuis la console GestCom. Si vous le recevez, l\'envoi fonctionne.', fn ($m) => $m->to($to)->subject('[GestCom] Test d\'envoi d\'e-mail'));
+            Mail::raw('Ceci est un e-mail de test envoyé depuis la console Salloubhe Gescom. Si vous le recevez, l\'envoi fonctionne.', fn ($m) => $m->to($to)->subject('[Salloubhe Gescom] Test d\'envoi d\'e-mail'));
         } catch (Throwable $e) {
             report($e);
 

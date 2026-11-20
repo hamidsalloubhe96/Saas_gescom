@@ -19,7 +19,7 @@ export default function Account() {
     try {
       await api.put('/settings/business-type', { business_type: value })
       setBusinessType(value)
-      setTypeMsg({ pharmacy: 'Mode pharmacie activé.', bakery: 'Mode boulangerie activé.' }[value] ?? 'Mode commerce général activé.')
+      setTypeMsg({ pharmacy: 'Mode pharmacie activé.', bakery: 'Mode boulangerie activé.', hardware: 'Mode quincaillerie activé.', wholesale: 'Mode grossiste activé.', services: 'Mode services activé.', butcher: 'Mode boucherie activé.' }[value] ?? 'Mode commerce général activé.')
     } catch (err) {
       setTypeMsg(parseError(err).message)
     } finally { setTypeBusy(false) }
@@ -81,6 +81,10 @@ export default function Account() {
             <label htmlFor="business_type">Votre activité</label>
             <select id="business_type" value={type} onChange={changeType} disabled={typeBusy}>
               <option value="general">Commerce général</option>
+              <option value="hardware">Quincaillerie</option>
+              <option value="butcher">Boucherie et produits au poids</option>
+              <option value="wholesale">Grossiste et distribution</option>
+              <option value="services">Services et prestations</option>
               <option value="pharmacy">Pharmacie</option>
               <option value="bakery">Boulangerie</option>
             </select>

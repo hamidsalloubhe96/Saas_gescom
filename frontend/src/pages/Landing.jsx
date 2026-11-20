@@ -4,10 +4,10 @@ import api, { storage } from '../api'
 import { useAuth } from '../auth'
 import {
   AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CloseIcon, MenuIcon, NextIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
-  DevicesIcon, PharmacyIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
+  BarcodeIcon, DevicesIcon, ExpiryIcon, PharmacyIcon, PhoneIcon, PlayIcon, PosIcon, ProductionIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UploadIcon, UsersIcon,
 } from '../components/ui'
 import InstallApp from '../components/InstallApp'
-import Showcase from '../components/landing/Showcase'
+import Gallery from '../components/landing/Gallery'
 import { cn } from '../lib/cn'
 import { fmtMoney } from '../lib/format'
 
@@ -16,9 +16,12 @@ const consoleUrl = () => {
   try { return `${new URL(import.meta.env.VITE_API_URL ?? '/api', window.location.href).origin}/console/login` } catch { return '/console/login' }
 }
 const BUSINESSES = [
-  [ProductsIcon, 'Supermarché et commerce', 'Caisse, codes-barres, stock et plusieurs points de vente.', 'general', 'Commencer'],
-  [PharmacyIcon, 'Pharmacie', 'Lots et dates de péremption, ventes qui écoulent les lots les plus proches, équivalents par principe actif.', 'pharmacy', 'Commencer en pharmacie'],
-  [InvoicesIcon, 'Quincaillerie et distribution', 'Devis, factures, vente à crédit avec plafond et paiements partiels.', 'general', 'Commencer'],
+  [ProductsIcon, 'Supermarché et commerce', 'Caisse rapide, codes-barres, stock et plusieurs points de vente.', 'general', 'Commencer'],
+  [PharmacyIcon, 'Pharmacie', 'Lots et péremptions, ventes qui écoulent les lots les plus proches, équivalents par principe actif.', 'pharmacy', 'Commencer en pharmacie'],
+  [ProductionIcon, 'Boulangerie', 'Recettes, coût de revient, production du jour et bilan des invendus.', 'bakery', 'Commencer en boulangerie'],
+  [InvoicesIcon, 'Quincaillerie et distribution', 'Cartons, prix par quantité, devis, factures et vente à crédit avec plafond.', 'hardware', 'Commencer en quincaillerie'],
+  [BarcodeIcon, 'Boucherie et produits au poids', 'Pesée à la caisse, étiquettes de balance, balance branchée et montants arrondis.', 'butcher', 'Commencer en boucherie'],
+  [UsersIcon, 'Grossiste, distribution et services', 'Clients à crédit, devis acceptés puis facturés, paiements partiels et relances.', 'wholesale', 'Commencer'],
 ]
 const FAQ_VISIBLE = 5 // questions affichées avant « Voir toutes »
 const MIN_REVIEWS = 3 // les avis ne s'affichent qu'à partir de trois avis publiés
@@ -35,6 +38,10 @@ const FEATURES = [
   [UsersIcon, 'Droits et rôles', 'Gérant, vendeur, caissier, magasinier : chacun voit ce qui le concerne.'],
   [BranchesIcon, 'Plusieurs points de vente', 'Ouvrez autant de points de vente que vous voulez : chacun a son stock, sa caisse et ses ventes, réapprovisionnés depuis le siège.'],
   [DashboardIcon, 'Tableau de bord', 'Ventes, impayés et stock bas d’un coup d’œil, par point de vente ou pour toute l’entreprise.'],
+  [UploadIcon, 'Import de produits', 'Chargez votre catalogue depuis Excel ou CSV : chaque ligne est contrôlée avant l’enregistrement.'],
+  [BarcodeIcon, 'Vente au poids', 'Pesée à la caisse, étiquettes de balance, balance branchée, cartons et prix par quantité.'],
+  [ExpiryIcon, 'Lots et péremptions', 'Les lots qui périment en premier sortent en premier, et un lot périmé n’est jamais vendu.'],
+  [ProductionIcon, 'Recettes et production', 'Coût de revient, fournées du jour, ingrédients vérifiés et bilan des invendus.'],
 ]
 
 const FAQ = [
@@ -46,7 +53,11 @@ const FAQ = [
   ['Puis-je gérer plusieurs points de vente ?', 'Oui, autant que vous voulez. Le siège envoie du stock à chaque point de vente par transfert, voit les ventes et le stock de tous, et chaque responsable ne voit que son propre point de vente.'],
   ['Mes employés peuvent-ils tous voir mes chiffres ?', 'Non. Chaque personne a un rôle (gérant, vendeur, caissier, magasinier, comptable) et ne voit que ce qui la concerne. Un caissier n’a pas accès à vos marges, par exemple.'],
   ['Mes données sont-elles séparées de celles des autres entreprises ?', 'Oui. Chaque entreprise dispose de son propre espace de données, isolé des autres. Personne d’autre que votre équipe n’y accède.'],
-  ['Puis-je l’utiliser sur téléphone ou tablette ?', 'Salloubhe Gescom fonctionne dans le navigateur : rien à installer. Ouvrez-le sur ordinateur, tablette ou téléphone, avec le même compte.'],
+  ['Puis-je l’utiliser sur téléphone ou tablette ?', 'Salloubhe Gescom fonctionne dans le navigateur et s’installe aussi comme une application sur l’écran d’accueil. Ouvrez-le sur ordinateur, tablette ou téléphone, avec le même compte.'],
+  ['Puis-je importer mon catalogue de produits ?', 'Oui. Chargez un fichier Excel ou CSV : l’application contrôle chaque ligne (doublons, prix illisibles, noms manquants) avant d’enregistrer, et vous renvoie la liste des lignes à corriger. Un modèle est à télécharger.'],
+  ['Est-ce adapté à une pharmacie ?', 'Oui. Chaque médicament peut être suivi par lot avec sa date de péremption : les lots qui périment en premier sortent en premier et un lot périmé n’est jamais vendu. Vous voyez les équivalents par principe actif et les péremptions à venir.'],
+  ['Et pour une boulangerie ?', 'Vous saisissez vos recettes : l’application calcule le coût de revient, vérifie les ingrédients avant chaque fournée, les sort du stock et chiffre vos invendus en fin de journée.'],
+  ['Puis-je vendre au poids avec une balance ?', 'Oui. Saisissez le poids à la caisse, scannez l’étiquette imprimée par votre balance, ou branchez une balance compatible (Chrome ou Edge sur ordinateur). Les montants sont arrondis à l’unité.'],
   ['Faut-il une carte bancaire pour essayer ?', 'Non. L’essai est gratuit et ne demande aucune carte bancaire. Vous créez votre espace en quelques minutes.'],
   ['Que se passe-t-il à la fin de l’essai ?', 'Vos données sont conservées. Vous choisissez un forfait et réglez depuis la page « Abonnement » pour continuer, sans rien perdre.'],
   ['Comment régler mon abonnement ?', 'Vous déclarez votre paiement (virement, mobile money, espèces) avec sa référence ; notre équipe le valide et vous recevez un reçu imprimable.'],
@@ -260,9 +271,9 @@ export default function Landing() {
           <div className="grid justify-items-center gap-3">
           {/* Maquette d'appareils : les captures réelles (données fictives) sont placées DERRIÈRE l'image, dont les écrans sont transparents. */}
           <div className="relative mx-auto aspect-square w-full max-w-xl motion-safe:animate-[gc-fade-up_.8s_.15s_ease_both] lg:max-w-none lg:scale-[1.2]">
-            <img src="/dashboard-demo.png" width="1940" height="1213" alt="Tableau de bord Salloubhe Gescom sur ordinateur, avec des données fictives" className="absolute object-cover object-top-left"
+            <img src="/vitrine/teranga-dashboard.webp" width="2160" height="1350" alt="Tableau de bord Salloubhe Gescom sur ordinateur, avec des données fictives" className="absolute object-cover object-top-left"
               style={{ left: '16%', top: '21.2%', width: '67.6%', height: '42.2%' }} />
-            <img src="/dashboard-demo-mobile.png" width="1170" height="2505" alt="Tableau de bord Salloubhe Gescom sur téléphone, avec des données fictives" className="absolute object-cover object-top"
+            <img src="/vitrine/mobile-dashboard.webp" width="780" height="1688" alt="Tableau de bord Salloubhe Gescom sur téléphone, avec des données fictives" className="absolute object-cover object-top"
               style={{ left: '77.8%', top: '47.8%', width: '15.6%', height: '33.4%' }} />
             <img src="/device-mockup.png" width="500" height="500" alt="" aria-hidden="true" className="pointer-events-none absolute inset-0 size-full" />
           </div>
@@ -291,7 +302,7 @@ export default function Landing() {
       </Section>
 
       <Section id="metiers" className="border-t border-line">
-        <Heading title="Une application, votre métier" sub="Choisissez votre activité à l’inscription : le menu et les modules s’adaptent." />
+        <Heading title="Une application, votre métier" sub="Choisissez votre activité à l’inscription : le menu, le vocabulaire et les modules s’adaptent." />
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {BUSINESSES.map(([Icon, title, text, type, cta], i) => (
             <Reveal key={title} delay={i * 60}>
@@ -309,8 +320,8 @@ export default function Landing() {
       </Section>
 
       <Section id="apercu" alt>
-        <Heading title="Aperçu de la plateforme" sub="Des écrans simples, pensés pour aller vite au quotidien." />
-        <Showcase />
+        <Heading title="Aperçu de la plateforme" sub="De vraies captures de l’application, avec des données fictives, par métier." />
+        <Gallery />
       </Section>
 
       <Section id="a-propos">

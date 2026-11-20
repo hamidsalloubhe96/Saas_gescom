@@ -20,7 +20,7 @@ export default function AuthShell({ title, subtitle, children, footer, wide = fa
           <Link to="/bienvenue" className="no-underline"><Brand light /></Link>
           <div className="mt-12">
             <p className="text-sm font-semibold text-brand-300">Gestion commerciale</p>
-            <h2 className="mt-2 text-3xl font-semibold leading-tight text-white">Pilotez votre activité, simplement.</h2>
+            <h2 className="mt-2 text-3xl font-semibold leading-tight text-white">Pilotez votre activité simplement.</h2>
             <p className="mt-3 max-w-xs text-[.95rem]">Clients, stock, devis, factures, achats et caisse : tout votre commerce dans un seul espace.</p>
           </div>
           <p className="relative mt-auto flex items-center gap-2 pt-10 text-sm text-white/80">

@@ -30,7 +30,7 @@ class Tenant extends BaseTenant implements TenantWithDatabase
         self::STATUS_PENDING_DELETION => 'Suppression programmée',
     ];
 
-    public const BUSINESS_TYPES = ['general' => 'Commerce général', 'pharmacy' => 'Pharmacie', 'bakery' => 'Boulangerie'];
+    public const BUSINESS_TYPES = ['general' => 'Commerce général', 'hardware' => 'Quincaillerie', 'butcher' => 'Boucherie et produits au poids', 'wholesale' => 'Grossiste et distribution', 'services' => 'Services et prestations', 'pharmacy' => 'Pharmacie', 'bakery' => 'Boulangerie'];
 
     public static function getCustomColumns(): array
     {

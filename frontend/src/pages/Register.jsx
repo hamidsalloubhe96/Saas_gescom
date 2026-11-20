@@ -5,10 +5,14 @@ import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
 import Turnstile from '../components/Turnstile'
-import { PasswordField, PharmacyIcon, ProductionIcon, ProductsIcon } from '../components/ui'
+import { BarcodeIcon, BranchesIcon, InvoicesIcon, PasswordField, PharmacyIcon, ProductionIcon, ProductsIcon, UsersIcon } from '../components/ui'
 
 const ACTIVITIES = [
-  { value: 'general', label: 'Commerce général', hint: 'Supermarché, boutique, quincaillerie', Icon: ProductsIcon },
+  { value: 'general', label: 'Commerce général', hint: 'Supermarché, épicerie, boutique, grossiste', Icon: ProductsIcon },
+  { value: 'hardware', label: 'Quincaillerie', hint: 'Cartons, prix par quantité, devis', Icon: InvoicesIcon },
+  { value: 'butcher', label: 'Boucherie', hint: 'Pesée, étiquettes de balance', Icon: BarcodeIcon },
+  { value: 'wholesale', label: 'Grossiste', hint: 'Clients à crédit, plusieurs dépôts', Icon: BranchesIcon },
+  { value: 'services', label: 'Services', hint: 'Devis, factures, paiements', Icon: UsersIcon },
   { value: 'pharmacy', label: 'Pharmacie', hint: 'Lots, péremptions, équivalents', Icon: PharmacyIcon },
   { value: 'bakery', label: 'Boulangerie', hint: 'Recettes, production, invendus', Icon: ProductionIcon },
 ]
@@ -23,7 +27,7 @@ export default function Register() {
   const [params] = useSearchParams()
   const [config, setConfig] = useState(null) // réglages publics : inscriptions ouvertes ? vérification d'e-mail ? anti-robot ?
   const [form, setForm] = useState({
-    company: '', slug: '', name: '', email: '', password: '', code: '', business_type: ['pharmacy', 'bakery'].includes(params.get('activite')) ? params.get('activite') : 'general',
+    company: '', slug: '', name: '', email: '', password: '', code: '', business_type: ['pharmacy', 'bakery', 'hardware', 'butcher', 'wholesale', 'services'].includes(params.get('activite')) ? params.get('activite') : 'general',
   })
   const [slugEdited, setSlugEdited] = useState(false)
   const [step, setStep] = useState('form') // form -> code (si la vérification d'e-mail est activée)
@@ -149,15 +153,14 @@ export default function Register() {
         </div>
         <fieldset className="mb-4 min-w-0 border-0 p-0">
           <legend className="mb-2 text-xs font-semibold text-muted">Type d'activité</legend>
-          <div role="radiogroup" aria-label="Type d'activité" className="grid gap-2 sm:grid-cols-3">
+          <div role="radiogroup" aria-label="Type d'activité" className="flex flex-wrap gap-2">
             {ACTIVITIES.map((a) => {
               const on = form.business_type === a.value
               return (
-                <button key={a.value} type="button" role="radio" aria-checked={on}
+                <button key={a.value} type="button" role="radio" aria-checked={on} title={a.hint}
                   onClick={() => setForm({ ...form, business_type: a.value })}
-                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${on ? 'border-accent bg-accent-soft' : 'border-line hover:bg-surface-2'}`}>
-                  <a.Icon className="size-5 shrink-0 text-accent" aria-hidden="true" />
-                  <span className="min-w-0"><span className="block text-sm font-semibold">{a.label}</span><span className="block text-xs text-muted">{a.hint}</span></span>
+                  className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-sm font-medium transition-colors ${on ? 'border-accent bg-accent-soft text-accent' : 'border-line hover:bg-surface-2'}`}>
+                  <a.Icon className="size-4 shrink-0" aria-hidden="true" />{a.label}
                 </button>
               )
             })}

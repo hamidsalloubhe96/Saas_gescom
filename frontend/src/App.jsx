@@ -23,6 +23,7 @@ import Receipt from './pages/Receipt'
 import Login from './pages/Login'
 import Pos from './pages/pos/Pos'
 import Ticket from './pages/pos/Ticket'
+import Expiry from './pages/Expiry'
 import Products from './pages/Products'
 import PurchaseEditor from './pages/purchases/PurchaseEditor'
 import PurchaseList from './pages/purchases/PurchaseList'
@@ -97,6 +98,7 @@ export default function App() {
             <Route path="clients" element={guard('customers.view', <Customers />)} />
             <Route path="fournisseurs" element={guard('suppliers.view', <Suppliers />)} />
             <Route path="produits" element={guard('products.view', <Products />)} />
+            <Route path="peremptions" element={guard('products.view', <Expiry />)} />
             <Route path="ventes" element={guard('sales.view', <SalesList />)} />
             <Route path="ventes/nouveau" element={guard('sales.manage', <SalesEditor />)} />
             <Route path="ventes/:id" element={guard('sales.view', <SalesView />)} />

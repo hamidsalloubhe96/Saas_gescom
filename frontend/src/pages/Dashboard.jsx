@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import SalesChart from '../components/SalesChart'
+import { useBusiness } from '../lib/business'
 import { fmtMoney0, fmtQty } from '../lib/format'
 
 function Kpi({ label, value, sub, tone, to }) {
@@ -27,10 +28,17 @@ export default function Dashboard() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [days, setDays] = useState(14) // période du graphique : 14 ou 30 jours
+  const { isPharmacy } = useBusiness()
+  const [expiry, setExpiry] = useState(null)
 
   useEffect(() => {
     api.get('/dashboard').then(({ data: d }) => setData(d)).catch((err) => setError(parseError(err).message))
   }, [])
+
+  useEffect(() => {
+    if (!isPharmacy || !can('products.view')) return
+    api.get('/stock/expiry', { params: { days: 30 } }).then(({ data: x }) => setExpiry(x.summary)).catch(() => {})
+  }, [isPharmacy, can])
 
   const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const d = data
@@ -74,6 +82,11 @@ export default function Dashboard() {
             <Kpi label="Stock bas" value={String(d.stock.low_count)} to="/produits?low=1"
               tone={d.stock.low_count > 0 ? 'warn' : undefined}
               sub={d.stock.low_count > 0 ? 'à réapprovisionner' : 'Aucun produit sous le seuil'} />
+            {isPharmacy && expiry && (
+              <Kpi label="Péremptions" value={String(expiry.expired + expiry.soon)} to="/peremptions"
+                tone={expiry.expired + expiry.soon > 0 ? 'warn' : undefined}
+                sub={expiry.expired > 0 ? `${expiry.expired} lot${expiry.expired > 1 ? 's' : ''} périmé${expiry.expired > 1 ? 's' : ''}` : expiry.soon > 0 ? 'lots à écouler sous 30 jours' : 'Aucun lot concerné'} />
+            )}
             <Kpi label="Devis en cours" value={String(d.pending.open_quotes)} to="/ventes?type=quote"
               sub={d.pending.open_quotes > 0 ? `${fmtMoney0(d.pending.open_quotes_total)} en attente` : 'Aucun devis en attente'} />
           </section>

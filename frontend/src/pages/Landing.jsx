@@ -4,7 +4,7 @@ import api, { storage } from '../api'
 import { useAuth } from '../auth'
 import {
   AccountIcon, ArrowRightIcon, BranchesIcon, Brand, ChevronDownIcon, CloseIcon, MenuIcon, NextIcon, CustomersIcon, DashboardIcon, FastIcon, HeadsetIcon, InvoicesIcon,
-  DevicesIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
+  DevicesIcon, PharmacyIcon, PhoneIcon, PlayIcon, PosIcon, ProductsIcon, PurchasesIcon, SearchIcon, StarIcon, TrustIcon, UsersIcon,
 } from '../components/ui'
 import InstallApp from '../components/InstallApp'
 import Showcase from '../components/landing/Showcase'
@@ -15,11 +15,16 @@ import { fmtMoney } from '../lib/format'
 const consoleUrl = () => {
   try { return `${new URL(import.meta.env.VITE_API_URL ?? '/api', window.location.href).origin}/console/login` } catch { return '/console/login' }
 }
+const BUSINESSES = [
+  [ProductsIcon, 'Supermarché et commerce', 'Caisse, codes-barres, stock et plusieurs points de vente.', 'general', 'Commencer'],
+  [PharmacyIcon, 'Pharmacie', 'Lots et dates de péremption, ventes qui écoulent les lots les plus proches, équivalents par principe actif.', 'pharmacy', 'Commencer en pharmacie'],
+  [InvoicesIcon, 'Quincaillerie et distribution', 'Devis, factures, vente à crédit avec plafond et paiements partiels.', 'general', 'Commencer'],
+]
 const FAQ_VISIBLE = 5 // questions affichées avant « Voir toutes »
 const MIN_REVIEWS = 3 // les avis ne s'affichent qu'à partir de trois avis publiés
 const telHref = (n) => `tel:${n.replace(/[^\d+]/g, '')}`
 
-const NAV = [['accueil', 'Accueil'], ['fonctionnalites', 'Fonctionnalités'], ['apercu', 'Aperçu'], ['a-propos', 'À propos'], ['tarifs', 'Tarifs'], ['faq', 'FAQ'], ['contact', 'Contact']]
+const NAV = [['accueil', 'Accueil'], ['fonctionnalites', 'Fonctionnalités'], ['metiers', 'Métiers'], ['apercu', 'Aperçu'], ['a-propos', 'À propos'], ['tarifs', 'Tarifs'], ['faq', 'FAQ'], ['contact', 'Contact']]
 
 const FEATURES = [
   [CustomersIcon, 'Clients et fournisseurs', 'Fiches complètes, historique des échanges et suivi des soldes.'],
@@ -279,6 +284,24 @@ export default function Landing() {
                   <h3 className="leading-snug">{title}</h3>
                 </div>
                 <p className="mt-3 text-sm text-muted">{text}</p>
+              </article>
+            </Reveal>
+          ))}
+        </div>
+      </Section>
+
+      <Section id="metiers" className="border-t border-line">
+        <Heading title="Une application, votre métier" sub="Choisissez votre activité à l’inscription : le menu et les modules s’adaptent." />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {BUSINESSES.map(([Icon, title, text, type, cta], i) => (
+            <Reveal key={title} delay={i * 60}>
+              <article className="flex h-full flex-col rounded-xl border border-line bg-surface p-5">
+                <div className="flex items-center gap-3">
+                  <span className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-accent-soft text-accent"><Icon className="size-5" aria-hidden="true" /></span>
+                  <h3 className="leading-snug">{title}</h3>
+                </div>
+                <p className="mt-3 flex-1 text-sm text-muted">{text}</p>
+                <Link to={`/register?activite=${type}`} className={cn(btnOutline, 'mt-4 self-start')}>{cta}</Link>
               </article>
             </Reveal>
           ))}

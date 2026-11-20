@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react'
 import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { cn } from '../lib/cn'
+import { useBusiness } from '../lib/business'
 import { useTheme } from '../lib/theme'
 import Announcements from './Announcements'
 import BranchSwitcher from './BranchSwitcher'
 import NewVersionBanner from './NewVersionBanner'
 import SubscriptionBanner from './SubscriptionBanner'
 import {
-  AccountIcon, BillingIcon, BranchesIcon, CloseIcon, CustomersIcon, DashboardIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon, MoonIcon,
+  AccountIcon, BillingIcon, BranchesIcon, CloseIcon, CustomersIcon, DashboardIcon, ExpiryIcon, FeedbackIcon, InventoryIcon, InvoicesIcon, LogoutIcon, MenuIcon, MoonIcon,
   PosIcon, ProductsIcon, PurchasesIcon, SuppliersIcon, SunIcon, SupportIcon, TransfersIcon, UsersIcon,
 } from './ui'
 
@@ -18,6 +19,7 @@ export const NAV = [
   { to: '/clients', label: 'Clients', perm: 'customers.view', icon: CustomersIcon },
   { to: '/fournisseurs', label: 'Fournisseurs', perm: 'suppliers.view', icon: SuppliersIcon },
   { to: '/produits', label: 'Produits & stock', perm: 'products.view', icon: ProductsIcon },
+  { to: '/peremptions', label: 'Péremptions', perm: 'products.view', icon: ExpiryIcon, pharmacy: true },
   { to: '/ventes', label: 'Devis & factures', perm: 'sales.view', icon: InvoicesIcon },
   { to: '/inventaire', label: 'Inventaire', perm: 'stock.move', icon: InventoryIcon },
   { to: '/achats', label: 'Achats', perm: 'purchases.view', icon: PurchasesIcon },
@@ -38,6 +40,7 @@ const link = ({ isActive }) => cn(
 export default function Layout() {
   const { user, tenant, company, logout, can, platform } = useAuth()
   const { theme, toggle } = useTheme()
+  const { isPharmacy, w } = useBusiness()
   const imp = platform.impersonation
   const location = useLocation()
   const [open, setOpen] = useState(false) // tiroir du menu sur mobile
@@ -85,10 +88,10 @@ export default function Layout() {
           </div>
         </div>
         <nav aria-label="Navigation principale" className="-mr-2 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-2 [scrollbar-color:rgba(255,255,255,.25)_transparent] [scrollbar-width:thin]">
-          {NAV.filter((n) => n.to !== '/compte' && (!n.perm || can(n.perm))).map(({ to, label, end, icon: Icon }) => (
+          {NAV.filter((n) => n.to !== '/compte' && (!n.pharmacy || isPharmacy) && (!n.perm || can(n.perm))).map(({ to, label, end, icon: Icon }) => (
             <NavLink key={to} to={to} end={end} className={link}>
               <Icon className="size-[18px] shrink-0" aria-hidden="true" />
-              {label}
+              {to === '/produits' ? w.stockNav : label}
             </NavLink>
           ))}
         </nav>

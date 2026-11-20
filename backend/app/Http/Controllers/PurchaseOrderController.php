@@ -94,6 +94,8 @@ class PurchaseOrderController extends Controller
             'items' => ['required', 'array', 'min:1', 'max:200'],
             'items.*.line_id' => ['required', 'integer'],
             'items.*.quantity' => ['required', 'numeric', 'min:0', 'max:999999999'],
+            'items.*.batch_number' => ['nullable', 'string', 'max:60'],
+            'items.*.expires_at' => ['nullable', 'date'],
         ]);
 
         return response()->json(

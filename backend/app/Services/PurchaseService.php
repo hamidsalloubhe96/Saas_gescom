@@ -143,7 +143,7 @@ class PurchaseService
     /**
      * Réception de marchandises (totale ou partielle). Chaque ligne reçue crée une entrée de stock.
      *
-     * @param  array<int, array{line_id: int, quantity: float|string}>  $items
+     * @param  array<int, array{line_id: int, quantity: float|string, batch_number?: ?string, expires_at?: ?string}>  $items
      */
     public function receive(PurchaseOrder $po, array $items, ?int $userId): PurchaseOrder
     {
@@ -167,7 +167,15 @@ class PurchaseService
                 }
 
                 if ($line->product_id) {
-                    $this->stock->move($line->product_id, 'in', $qty, "Réception {$po->number}", $userId);
+                    $product = \App\Models\Product::find($line->product_id);
+                    $batch = null;
+                    if ($product?->track_batches) {
+                        if (blank($item['batch_number'] ?? null) || blank($item['expires_at'] ?? null)) {
+                            abort(422, "« {$line->description} » : indiquez le numéro de lot et la date de péremption.");
+                        }
+                        $batch = [['batch_number' => $item['batch_number'], 'expires_at' => $item['expires_at'], 'quantity' => $qty]];
+                    }
+                    $this->stock->move($line->product_id, 'in', $qty, "Réception {$po->number}", $userId, batches: $batch);
                 }
                 $line->update(['quantity_received' => round((float) $line->quantity_received + $qty, 3)]);
                 $received++;

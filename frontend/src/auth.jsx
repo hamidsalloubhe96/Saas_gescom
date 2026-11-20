@@ -4,12 +4,13 @@ import api, { storage } from './api'
 const AuthContext = createContext(null)
 
 /** Tout ce que la plateforme joint à /login et /me en plus de l'utilisateur (abonnement, annonces, assistance…). */
-const platformPart = ({ token, user, tenant, company, ...rest }) => rest // eslint-disable-line no-unused-vars
+const platformPart = ({ token, user, tenant, company, business_type, ...rest }) => rest // eslint-disable-line no-unused-vars
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [tenant, setTenant] = useState(() => storage.get('tenant'))
   const [company, setCompany] = useState(null)
+  const [businessType, setBusinessType] = useState('general')
   const [platform, setPlatform] = useState({})
   const [loading, setLoading] = useState(() => Boolean(storage.get('token')))
 
@@ -22,6 +23,7 @@ export function AuthProvider({ children }) {
   const apply = useCallback((data) => {
     setUser(data.user)
     setCompany(data.company ?? null)
+    setBusinessType(data.business_type ?? 'general')
     setPlatform(platformPart(data))
   }, [])
 
@@ -95,8 +97,8 @@ export function AuthProvider({ children }) {
   const can = useCallback((permission) => Boolean(user?.permissions?.includes(permission)), [user])
 
   const value = useMemo(
-    () => ({ user, tenant, company, platform, loading, login, register, logout, can, refresh, exchangeImpersonation }),
-    [user, tenant, company, platform, loading, login, register, logout, can, refresh, exchangeImpersonation],
+    () => ({ user, tenant, company, businessType, setBusinessType, platform, loading, login, register, logout, can, refresh, exchangeImpersonation }),
+    [user, tenant, company, businessType, platform, loading, login, register, logout, can, refresh, exchangeImpersonation],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

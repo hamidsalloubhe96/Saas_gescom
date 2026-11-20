@@ -13,6 +13,7 @@ export default function MovementForm({ product, onSaved, onCancel }) {
   const [type, setType] = useState('in')
   const [quantity, setQuantity] = useState('')
   const [reason, setReason] = useState('')
+  const [batch, setBatch] = useState({ batch_number: '', expires_at: '' })
   const [fields, setFields] = useState({})
   const [error, setError] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -24,7 +25,7 @@ export default function MovementForm({ product, onSaved, onCancel }) {
     setError(null)
     setFields({})
     try {
-      await api.post(`/products/${product.id}/movements`, { type, quantity, reason })
+      await api.post(`/products/${product.id}/movements`, { type, quantity, reason, ...(type === 'in' && product.track_batches ? batch : {}) })
       onSaved()
     } catch (err) {
       const parsed = parseError(err)
@@ -51,6 +52,13 @@ export default function MovementForm({ product, onSaved, onCancel }) {
       </div>
       <Field label={current.qty} name="quantity" type="number" min="0" step="any" autoFocus
         value={quantity} onChange={(e) => setQuantity(e.target.value)} error={fields.quantity} hint={current.hint} />
+      {type === 'in' && product.track_batches && (
+        <div className="row">
+          <Field label="N° de lot" name="batch_number" value={batch.batch_number} onChange={(e) => setBatch({ ...batch, batch_number: e.target.value })} error={fields.batch_number} />
+          <Field label="Date de péremption" name="expires_at" type="date" value={batch.expires_at} onChange={(e) => setBatch({ ...batch, expires_at: e.target.value })} error={fields.expires_at} />
+        </div>
+      )}
+      {type !== 'in' && product.track_batches && <p className="field-hint">Les lots qui périment en premier sortent en premier.</p>}
       <Field label="Motif" name="reason" value={reason} onChange={(e) => setReason(e.target.value)}
         error={fields.reason} hint="Ex. réception fournisseur, casse, inventaire annuel" />
       <div className="modal-actions">

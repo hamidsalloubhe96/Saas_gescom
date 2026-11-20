@@ -10,7 +10,7 @@ class Product extends Model
 {
     // stock_quantity n'est volontairement PAS fillable : il ne change que via StockService.
     protected $fillable = [
-        'sku', 'barcode', 'name', 'category_id', 'unit', 'purchase_price', 'sale_price',
+        'sku', 'barcode', 'name', 'active_ingredient', 'dosage', 'form', 'track_batches', 'category_id', 'unit', 'purchase_price', 'sale_price',
         'tax_rate', 'min_stock', 'notes', 'is_active',
     ];
 
@@ -23,6 +23,7 @@ class Product extends Model
             'stock_quantity' => 'decimal:3',
             'min_stock' => 'decimal:3',
             'is_active' => 'boolean',
+            'track_batches' => 'boolean',
         ];
     }
 
@@ -61,6 +62,11 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function batches(): HasMany
+    {
+        return $this->hasMany(ProductBatch::class);
     }
 
     public function movements(): HasMany

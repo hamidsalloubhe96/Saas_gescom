@@ -166,7 +166,7 @@ class DocumentService
 
         foreach ($lines->whereNotNull('product_id') as $line) {
             try {
-                $this->stock->move($line->product_id, 'out', (float) $line->quantity, "Facture $number", $userId, $doc->branch_id);
+                $this->stock->move($line->product_id, 'out', (float) $line->quantity, "Facture $number", $userId, $doc->branch_id, sale: true);
             } catch (ValidationException $e) {
                 abort(422, "« {$line->description} » : ".($e->errors()['quantity'][0] ?? 'stock insuffisant.'));
             }

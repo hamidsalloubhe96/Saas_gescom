@@ -4,10 +4,26 @@ import { useAuth } from '../auth'
 import Field from '../components/Field'
 import InstallApp from '../components/InstallApp'
 import { PasswordField } from '../components/ui'
+import { useBusiness } from '../lib/business'
 
 /** Mon compte : nom, e-mail et mot de passe de l'utilisateur connecté. */
 export default function Account() {
-  const { user, refresh } = useAuth()
+  const { user, refresh, can, setBusinessType } = useAuth()
+  const { type } = useBusiness()
+  const [typeBusy, setTypeBusy] = useState(false)
+  const [typeMsg, setTypeMsg] = useState(null)
+
+  async function changeType(e) {
+    const value = e.target.value
+    setTypeBusy(true); setTypeMsg(null)
+    try {
+      await api.put('/settings/business-type', { business_type: value })
+      setBusinessType(value)
+      setTypeMsg(value === 'pharmacy' ? 'Mode pharmacie activé.' : 'Mode commerce général activé.')
+    } catch (err) {
+      setTypeMsg(parseError(err).message)
+    } finally { setTypeBusy(false) }
+  }
 
   const [profile, setProfile] = useState({ name: user.name, email: user.email, current_password: '' })
   const [pf, setPf] = useState({})
@@ -57,6 +73,20 @@ export default function Account() {
         <p className="muted">{user.email} · {user.role_label}</p>
       </header>
       <InstallApp className="mb-4" />
+
+      {can('users.manage') && (
+        <section className="panel">
+          <h2>Type d'activité</h2>
+          <div className="field">
+            <label htmlFor="business_type">Votre activité</label>
+            <select id="business_type" value={type} onChange={changeType} disabled={typeBusy}>
+              <option value="general">Commerce général</option>
+              <option value="pharmacy">Pharmacie</option>
+            </select>
+            <p className="field-hint">{typeMsg ?? 'Adapte le menu, le vocabulaire et les modules (lots, péremptions, équivalents).'}</p>
+          </div>
+        </section>
+      )}
 
       <section className="panel">
         <h2>Informations</h2>

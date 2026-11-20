@@ -8,6 +8,14 @@ class PurchaseOrderLine extends Model
 {
     public $timestamps = false;
 
+    protected $appends = ['track_batches'];
+
+    /** Le produit est-il suivi par lots (la réception demande alors numéro de lot et péremption) ? */
+    public function getTrackBatchesAttribute(): bool
+    {
+        return $this->product_id ? (bool) Product::whereKey($this->product_id)->value('track_batches') : false;
+    }
+
     protected $fillable = [
         'purchase_order_id', 'product_id', 'position', 'description', 'unit', 'quantity',
         'quantity_received', 'unit_price', 'tax_rate', 'line_total',

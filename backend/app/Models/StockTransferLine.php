@@ -9,11 +9,11 @@ class StockTransferLine extends Model
 {
     public $timestamps = false;
 
-    protected $fillable = ['stock_transfer_id', 'product_id', 'quantity', 'received_quantity'];
+    protected $fillable = ['stock_transfer_id', 'product_id', 'quantity', 'received_quantity', 'batches'];
 
     protected function casts(): array
     {
-        return ['quantity' => 'decimal:3', 'received_quantity' => 'decimal:3'];
+        return ['quantity' => 'decimal:3', 'received_quantity' => 'decimal:3', 'batches' => 'array'];
     }
 
     public function product(): BelongsTo

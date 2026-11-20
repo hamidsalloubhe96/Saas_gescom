@@ -5,6 +5,7 @@ import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
 import ScanButton from '../components/ScanButton'
+import { useBusiness } from '../lib/business'
 import { fmtMoney, fmtQty } from '../lib/format'
 import Categories from './products/Categories'
 import History from './products/History'
@@ -15,6 +16,7 @@ import BranchPrices from './products/BranchPrices'
 export default function Products() {
   const [params] = useSearchParams()
   const { can, platform } = useAuth()
+  const { isPharmacy, w } = useBusiness()
   const canManage = can('products.manage')
   const canMove = can('stock.move')
   const [rows, setRows] = useState([])
@@ -103,18 +105,18 @@ export default function Products() {
     <>
       <header className="page-head page-head-row">
         <div>
-          <h1>Produits & stock</h1>
-          <p className="muted">{meta.total} {meta.total > 1 ? 'produits' : 'produit'}</p>
+          <h1>{w.stockNav}</h1>
+          <p className="muted">{meta.total} {meta.total > 1 ? w.products.toLowerCase() : w.productLower}</p>
         </div>
         <div className="head-actions">
           <Link to="/produits/etiquettes" className="btn btn-secondary btn-inline btn-link"><BarcodeIcon className="size-4" aria-hidden="true" /> Étiquettes</Link>
           {canManage && <button className="btn btn-secondary btn-inline" onClick={() => setModal({ kind: 'categories' })}>Catégories</button>}
-          {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}><AddIcon className="size-4" aria-hidden="true" /> Nouveau produit</button>}
+          {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}><AddIcon className="size-4" aria-hidden="true" /> {w.newProduct}</button>}
         </div>
       </header>
 
       <div className="toolbar">
-        <input type="search" placeholder="Rechercher (désignation, référence, code-barres)…" aria-label="Rechercher"
+        <input type="search" placeholder={isPharmacy ? 'Rechercher (nom, principe actif, code-barres)…' : 'Rechercher (désignation, référence, code-barres)…'} aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <ScanButton onScan={scanForSearch} title="Retrouver un produit" />
         <select aria-label="Filtrer par catégorie" value={categoryId}
@@ -134,7 +136,7 @@ export default function Products() {
         <table>
           <thead>
             <tr>
-              <th>Produit</th><th>Catégorie</th><th className="num">Prix de vente</th>
+              <th>{w.product}</th><th>Catégorie</th><th className="num">Prix de vente</th>
               <th className="num">Stock</th><th>Statut</th><th className="actions">Actions</th>
             </tr>
           </thead>
@@ -143,7 +145,7 @@ export default function Products() {
               <tr key={p.id}>
                 <td>
                   <strong>{p.name}</strong>
-                  <div className="muted small">{p.sku}</div>
+                  <div className="muted small">{isPharmacy ? ([p.active_ingredient, p.dosage, p.form].filter(Boolean).join(' · ') || p.sku) : p.sku}</div>
                 </td>
                 <td>{p.category?.name ?? '—'}</td>
                 <td className="num">{fmtMoney(p.sale_price)}</td>
@@ -185,7 +187,7 @@ export default function Products() {
       )}
 
       <Modal open={modal?.kind === 'form'} onClose={close} wide
-        title={modal?.product ? 'Modifier le produit' : 'Nouveau produit'}>
+        title={modal?.product ? `Modifier ${isPharmacy ? 'le médicament' : 'le produit'}` : w.newProduct}>
         <ProductForm key={modal?.product?.id ?? modal?.defaults?.barcode ?? 'new'} product={modal?.product} defaults={modal?.defaults} categories={categories}
           onSaved={saved} onCancel={close} />
       </Modal>

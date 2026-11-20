@@ -5,18 +5,22 @@ import ScanButton from '../../components/ScanButton'
 import ExtraBarcodes from './ExtraBarcodes'
 import { GenerateIcon } from '../../components/ui'
 import { barcodeWarning } from '../../lib/barcode'
+import { useBusiness } from '../../lib/business'
+import Equivalents from './Equivalents'
 
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
+  active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
 }
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
   const isEdit = Boolean(product?.id)
+  const { isPharmacy, w } = useBusiness()
   const [form, setForm] = useState(() =>
     isEdit
       ? Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]]))
-      : { ...EMPTY, ...defaults },
+      : { ...EMPTY, track_batches: isPharmacy, ...defaults },
   )
   const [fields, setFields] = useState({})
   const [error, setError] = useState(null)
@@ -46,7 +50,7 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
     setError(null)
     setFields({})
     const payload = { ...form }
-    if (isEdit) delete payload.initial_stock
+    if (isEdit) { delete payload.initial_stock; delete payload.batch_number; delete payload.expires_at }
     try {
       if (isEdit) await api.put(`/products/${product.id}`, payload)
       else await api.post('/products', payload)
@@ -64,6 +68,15 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
     <form onSubmit={submit} noValidate>
       {error && <div role="alert" className="alert">{error}</div>}
       <Field label="Désignation *" name="name" value={form.name} onChange={set} error={fields.name} required />
+      {isPharmacy && (
+        <div className="row">
+          <Field label="Principe actif (DCI)" name="active_ingredient" value={form.active_ingredient ?? ''} onChange={set} error={fields.active_ingredient}
+            hint="Ex. paracétamol : relie les équivalents" />
+          <Field label="Dosage" name="dosage" value={form.dosage ?? ''} onChange={set} error={fields.dosage} hint="500 mg, 10 mg/ml…" />
+          <Field label="Forme" name="form" value={form.form ?? ''} onChange={set} error={fields.form} list="forms" hint="Comprimé, sirop…" />
+          <datalist id="forms">{['Comprimé', 'Gélule', 'Sirop', 'Solution buvable', 'Suppositoire', 'Crème', 'Pommade', 'Collyre', 'Injectable', 'Sachet', 'Spray'].map((f) => <option key={f} value={f} />)}</datalist>
+        </div>
+      )}
       <div className="row">
         <Field label="Référence (SKU)" name="sku" value={form.sku} onChange={set} error={fields.sku}
           hint="Laissez vide pour une génération automatique" />
@@ -113,13 +126,25 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
           value={form.min_stock} onChange={set} error={fields.min_stock}
           hint="Alerte « stock bas » (0 = désactivée)" />
       </div>
+      {!isEdit && form.track_batches && Number(form.initial_stock) > 0 && (
+        <div className="row">
+          <Field label="N° de lot du stock initial" name="batch_number" value={form.batch_number} onChange={set} error={fields.batch_number} />
+          <Field label="Date de péremption" name="expires_at" type="date" value={form.expires_at} onChange={set} error={fields.expires_at} />
+        </div>
+      )}
+      {isEdit && form.active_ingredient && <Equivalents productId={product.id} />}
       <div className="field">
         <label htmlFor="notes">Notes</label>
         <textarea id="notes" name="notes" rows="2" value={form.notes ?? ''} onChange={set} />
         <p className="field-error">{fields.notes || ' '}</p>
       </div>
+      {isPharmacy && (
+        <label className="check">
+          <input type="checkbox" name="track_batches" checked={Boolean(form.track_batches)} onChange={set} /> Suivre les lots et les dates de péremption
+        </label>
+      )}
       <label className="check">
-        <input type="checkbox" name="is_active" checked={Boolean(form.is_active)} onChange={set} /> Produit actif
+        <input type="checkbox" name="is_active" checked={Boolean(form.is_active)} onChange={set} /> {w.product} actif
       </label>
       <div className="modal-actions">
         <button type="button" className="btn btn-secondary" onClick={onCancel}>Annuler</button>

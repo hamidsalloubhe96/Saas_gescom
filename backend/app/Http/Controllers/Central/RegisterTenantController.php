@@ -52,6 +52,7 @@ class RegisterTenantController extends Controller
             'email' => ['required', 'email', 'max:190', new NotDisposableEmail],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
             'code' => ['nullable', 'string', 'max:10'],
+            'business_type' => ['nullable', 'in:'.implode(',', array_keys(\App\Models\Tenant::BUSINESS_TYPES))],
         ]);
 
         // Sans code (vérification désactivée), l'anti-robot protège l'envoi direct ; avec code, il a déjà été contrôlé à l'étape 1.

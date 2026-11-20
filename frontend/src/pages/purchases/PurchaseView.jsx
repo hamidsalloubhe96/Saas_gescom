@@ -179,6 +179,7 @@ function Reception({ po, busy, act }) {
   const open = po.lines.filter((l) => remaining(l) > 0)
   // Par défaut, on propose de réceptionner tout le reste à recevoir.
   const [qty, setQty] = useState(() => Object.fromEntries(open.map((l) => [l.id, String(remaining(l))])))
+  const [lots, setLots] = useState({})
   const scanning = useRef(false) // vrai dès le premier scan : on compte alors à partir de zéro
 
   // Après chaque réception, on recale les quantités proposées sur le nouveau reste.
@@ -213,7 +214,10 @@ function Reception({ po, busy, act }) {
 
   function submit(e) {
     e.preventDefault()
-    const items = open.map((l) => ({ line_id: l.id, quantity: qty[l.id] === '' ? 0 : qty[l.id] }))
+    const items = open.map((l) => ({
+      line_id: l.id, quantity: qty[l.id] === '' ? 0 : qty[l.id],
+      ...(l.track_batches ? { batch_number: lots[l.id]?.batch_number ?? '', expires_at: lots[l.id]?.expires_at ?? '' } : {}),
+    }))
     act(() => api.post(`/purchases/${po.id}/receive`, { items }),
       { confirm: 'Valider la réception ? Les quantités seront ajoutées au stock.' })
   }
@@ -233,7 +237,8 @@ function Reception({ po, busy, act }) {
         <table className="lines view">
           <thead>
             <tr><th>Désignation</th><th className="num">Commandé</th><th className="num">Déjà reçu</th>
-              <th className="num">Reste</th><th className="num" style={{ width: 140 }}>Reçu maintenant</th></tr>
+              <th className="num">Reste</th><th className="num" style={{ width: 140 }}>Reçu maintenant</th>
+              {open.some((l) => l.track_batches) && <><th style={{ width: 130 }}>N° de lot</th><th style={{ width: 150 }}>Péremption</th></>}</tr>
           </thead>
           <tbody>
             {open.map((l) => (
@@ -245,6 +250,14 @@ function Reception({ po, busy, act }) {
                 <td><input className="num" type="number" min="0" max={remaining(l)} step="any"
                   aria-label={`Quantité reçue pour ${l.description}`} value={qty[l.id] ?? ''}
                   onChange={(e) => setQty({ ...qty, [l.id]: e.target.value })} /></td>
+                {open.some((x) => x.track_batches) && (l.track_batches ? (
+                  <>
+                    <td><input aria-label={`Numéro de lot pour ${l.description}`} value={lots[l.id]?.batch_number ?? ''}
+                      onChange={(e) => setLots({ ...lots, [l.id]: { ...lots[l.id], batch_number: e.target.value } })} /></td>
+                    <td><input type="date" aria-label={`Date de péremption pour ${l.description}`} value={lots[l.id]?.expires_at ?? ''}
+                      onChange={(e) => setLots({ ...lots, [l.id]: { ...lots[l.id], expires_at: e.target.value } })} /></td>
+                  </>
+                ) : <><td /><td /></>)}
               </tr>
             ))}
           </tbody>

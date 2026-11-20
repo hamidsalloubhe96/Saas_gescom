@@ -27,7 +27,7 @@ class TenantProvisioner
     }
 
     /**
-     * @param  array{company: string, slug: string, name: string, email: string, country?: ?string, city?: ?string}  $data
+     * @param  array{company: string, slug: string, name: string, email: string, country?: ?string, city?: ?string, business_type?: ?string}  $data
      * @return array{tenant: Tenant, user: User, token: ?string}
      */
     public function provision(array $data, string $password, bool $withToken = false, bool $mustChangePassword = false): array
@@ -40,6 +40,7 @@ class TenantProvisioner
             'country' => $data['country'] ?? null,
             'city' => $data['city'] ?? null,
             'status' => Tenant::STATUS_ACTIVE,
+            'business_type' => $data['business_type'] ?? 'general',
         ]);
 
         app(SubscriptionService::class)->startTrial($tenant);

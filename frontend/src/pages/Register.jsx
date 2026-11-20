@@ -1,11 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
 import Turnstile from '../components/Turnstile'
-import { PasswordField } from '../components/ui'
+import { PasswordField, PharmacyIcon, ProductsIcon } from '../components/ui'
+
+const ACTIVITIES = [
+  { value: 'general', label: 'Commerce général', hint: 'Supermarché, boutique, quincaillerie', Icon: ProductsIcon },
+  { value: 'pharmacy', label: 'Pharmacie', hint: 'Lots, péremptions, équivalents', Icon: PharmacyIcon },
+]
 
 const slugify = (s) =>
   s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
@@ -14,9 +19,10 @@ const slugify = (s) =>
 export default function Register() {
   const { user, register } = useAuth()
   const navigate = useNavigate()
+  const [params] = useSearchParams()
   const [config, setConfig] = useState(null) // réglages publics : inscriptions ouvertes ? vérification d'e-mail ? anti-robot ?
   const [form, setForm] = useState({
-    company: '', slug: '', name: '', email: '', password: '', code: '',
+    company: '', slug: '', name: '', email: '', password: '', code: '', business_type: params.get('activite') === 'pharmacy' ? 'pharmacy' : 'general',
   })
   const [slugEdited, setSlugEdited] = useState(false)
   const [step, setStep] = useState('form') // form -> code (si la vérification d'e-mail est activée)
@@ -140,6 +146,23 @@ export default function Register() {
               error={fields.email} autoComplete="email" required />
           </fieldset>
         </div>
+        <fieldset className="mb-4 min-w-0 border-0 p-0">
+          <legend className="mb-2 text-xs font-semibold text-muted">Type d'activité</legend>
+          <div role="radiogroup" aria-label="Type d'activité" className="grid gap-2 sm:grid-cols-2">
+            {ACTIVITIES.map((a) => {
+              const on = form.business_type === a.value
+              return (
+                <button key={a.value} type="button" role="radio" aria-checked={on}
+                  onClick={() => setForm({ ...form, business_type: a.value })}
+                  className={`flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition-colors ${on ? 'border-accent bg-accent-soft' : 'border-line hover:bg-surface-2'}`}>
+                  <a.Icon className="size-5 shrink-0 text-accent" aria-hidden="true" />
+                  <span className="min-w-0"><span className="block text-sm font-semibold">{a.label}</span><span className="block text-xs text-muted">{a.hint}</span></span>
+                </button>
+              )
+            })}
+          </div>
+          {fields.business_type && <p className="field-error">{fields.business_type}</p>}
+        </fieldset>
         <PasswordField label="Mot de passe" name="password" value={form.password} onChange={set} meter
           error={fields.password} hint="8 caractères minimum" autoComplete="new-password" required />
         <Turnstile siteKey={config?.turnstile_site_key} onToken={onToken} />

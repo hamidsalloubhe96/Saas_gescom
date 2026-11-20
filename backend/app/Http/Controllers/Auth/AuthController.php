@@ -54,6 +54,7 @@ class AuthController extends Controller
             'user' => $user->present(),
             'tenant' => tenant('id'),
             'company' => tenant('name'),
+            'business_type' => tenant('business_type') ?? 'general',
         ] + \App\Http\Controllers\BranchController::payloadFor($user) + app(\App\Services\TenantContext::class)->forClient(tenant()));
     }
 
@@ -65,6 +66,7 @@ class AuthController extends Controller
             'user' => $request->user()->present(),
             'tenant' => tenant('id'),
             'company' => tenant('name'),
+            'business_type' => tenant('business_type') ?? 'general',
             ...\App\Http\Controllers\BranchController::payloadFor($request->user()),
             // Connexion d'assistance ouverte par la console : l'interface affiche un bandeau permanent.
             'impersonation' => $token && $token->name === 'impersonation'

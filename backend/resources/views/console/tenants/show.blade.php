@@ -29,6 +29,7 @@
                 <dt>Identifiant</dt><dd><code>{{ $tenant->id }}</code></dd>
                 <dt>Fondateur</dt><dd>{{ $tenant->owner_email ?? '—' }}</dd>
                 <dt>Pays / ville</dt><dd>{{ collect([$tenant->country, $tenant->city])->filter()->implode(' / ') ?: '—' }}</dd>
+                <dt>Type d'activité</dt><dd>{{ \App\Models\Tenant::BUSINESS_TYPES[$tenant->business_type ?? 'general'] ?? $tenant->business_type }}</dd>
                 <dt>Dernière connexion</dt><dd>{{ $tenant->last_activity_at?->format('d/m/Y H:i') ?? 'Jamais' }}</dd>
                 <dt>Taille des données</dt><dd>{{ $fmtBytes($stats['bytes']) }}</dd>
             </dl>

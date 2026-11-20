@@ -100,7 +100,8 @@ class StockTransferController extends Controller
 
             foreach ($t->lines as $line) {
                 try {
-                    $this->stock->move($line->product_id, 'transfer_out', (float) $line->quantity, "Transfert {$t->number}", $request->user()->id, $t->from_branch_id);
+                    $movement = $this->stock->move($line->product_id, 'transfer_out', (float) $line->quantity, "Transfert {$t->number}", $request->user()->id, $t->from_branch_id);
+                    $line->update(['batches' => $movement->batches]);
                 } catch (ValidationException $e) {
                     $name = Product::find($line->product_id)?->name ?? 'Produit';
                     abort(422, "« {$name} » : ".($e->errors()['quantity'][0] ?? 'stock insuffisant.'));
@@ -134,7 +135,7 @@ class StockTransferController extends Controller
                 abort_if($qty > (float) $line->quantity, 422, 'La quantité reçue ne peut pas dépasser la quantité expédiée.');
                 $line->update(['received_quantity' => $qty]);
                 if ($qty > 0) {
-                    $this->stock->move($line->product_id, 'transfer_in', $qty, "Transfert {$t->number}", $request->user()->id, $t->to_branch_id);
+                    $this->stock->move($line->product_id, 'transfer_in', $qty, "Transfert {$t->number}", $request->user()->id, $t->to_branch_id, batches: $this->shareOfBatches($line->batches, $qty, (float) $line->quantity));
                 }
             }
             $t->update(['status' => 'received', 'received_by' => $request->user()->id, 'received_at' => now()]);
@@ -152,5 +153,25 @@ class StockTransferController extends Controller
         });
 
         return response()->json($this->find($id));
+    }
+
+    /** Lots à recréer à la réception : tout si la quantité reçue égale l'expédiée, sinon au prorata des lots expédiés (premiers lots d'abord). */
+    private function shareOfBatches(?array $batches, float $received, float $shipped): ?array
+    {
+        if (! $batches) {
+            return null;
+        }
+        $left = round($received, 3);
+        $out = [];
+        foreach ($batches as $b) {
+            if ($left <= 0) {
+                break;
+            }
+            $q = min($left, (float) $b['quantity']);
+            $out[] = [...$b, 'quantity' => round($q, 3)];
+            $left = round($left - $q, 3);
+        }
+
+        return $out;
     }
 }

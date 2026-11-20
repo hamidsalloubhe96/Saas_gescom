@@ -77,6 +77,7 @@ Route::prefix('api')
 
             // --- Utilisateurs ---
             Route::middleware(['permission:users.manage', 'hq'])->group(function () {
+                Route::put('settings/business-type', [\App\Http\Controllers\BusinessTypeController::class, 'update']);
                 Route::get('roles', [UserController::class, 'roles']);
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);
@@ -118,6 +119,9 @@ Route::prefix('api')
                 Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
             });
             Route::get('products/{id}/movements', [ProductController::class, 'movements'])->middleware('permission:products.view');
+            Route::get('products/{id}/batches', [ProductController::class, 'batches'])->middleware('permission:products.view');
+            Route::get('products/{id}/equivalents', [ProductController::class, 'equivalents'])->middleware('permission:products.view');
+            Route::get('stock/expiry', [\App\Http\Controllers\ExpiryController::class, 'index'])->middleware('permission:products.view');
             Route::post('products/{id}/movements', [ProductController::class, 'addMovement'])->middleware('permission:stock.move');
 
             // --- Devis et factures ---

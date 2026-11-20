@@ -25,6 +25,7 @@ import Pos from './pages/pos/Pos'
 import Ticket from './pages/pos/Ticket'
 import Expiry from './pages/Expiry'
 import ImportProducts from './pages/products/ImportProducts'
+import Production from './pages/Production'
 import Products from './pages/Products'
 import PurchaseEditor from './pages/purchases/PurchaseEditor'
 import PurchaseList from './pages/purchases/PurchaseList'
@@ -99,6 +100,7 @@ export default function App() {
             <Route path="clients" element={guard('customers.view', <Customers />)} />
             <Route path="fournisseurs" element={guard('suppliers.view', <Suppliers />)} />
             <Route path="produits" element={guard('products.view', <Products />)} />
+            <Route path="production" element={guard('production.manage', <Production />)} />
             <Route path="peremptions" element={guard('products.view', <Expiry />)} />
             <Route path="ventes" element={guard('sales.view', <SalesList />)} />
             <Route path="ventes/nouveau" element={guard('sales.manage', <SalesEditor />)} />

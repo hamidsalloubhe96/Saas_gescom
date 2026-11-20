@@ -8,21 +8,22 @@ import { barcodeWarning } from '../../lib/barcode'
 import { useBusiness } from '../../lib/business'
 import Equivalents from './Equivalents'
 import PricingEditor from './PricingEditor'
+import RecipeEditor from './RecipeEditor'
 
 const WEIGHT_UNITS = ['kg', 'litre']
 
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
-  units: [], tiers: [], plu: '', sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
+  is_manufactured: false, batch_yield: '', sellable: true, recipe: [], units: [], tiers: [], plu: '', sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
 }
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
   const isEdit = Boolean(product?.id)
-  const { isPharmacy, w } = useBusiness()
+  const { isPharmacy, isBakery, w } = useBusiness()
   const [form, setForm] = useState(() =>
     isEdit
-      ? { ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]])), tiers: product.price_tiers ?? [] }
+      ? { ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]])), tiers: product.price_tiers ?? [], recipe: product.recipe_items ?? [] }
       : { ...EMPTY, track_batches: isPharmacy, ...defaults },
   )
   const [fields, setFields] = useState({})
@@ -55,6 +56,8 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
     const payload = { ...form }
     if (isEdit) { delete payload.initial_stock; delete payload.batch_number; delete payload.expires_at }
     // Lignes de conditionnement et de palier vides : ignorées. Un produit au poids n'a ni l'un ni l'autre.
+    payload.recipe = payload.is_manufactured ? (payload.recipe ?? []).filter((r) => r.ingredient_id && r.quantity).map((r) => ({ ingredient_id: r.ingredient_id, quantity: r.quantity })) : []
+    payload.batch_yield = payload.is_manufactured && payload.batch_yield !== '' ? payload.batch_yield : null
     payload.units = payload.sold_by_weight ? [] : (payload.units ?? []).filter((u) => u.name || u.quantity || u.sale_price)
     payload.tiers = payload.sold_by_weight ? [] : (payload.tiers ?? []).filter((t) => t.min_quantity || t.unit_price)
     try {
@@ -167,6 +170,19 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         </div>
       )}
       {isEdit && form.active_ingredient && <Equivalents productId={product.id} />}
+      {(isBakery || form.is_manufactured) && (
+        <div className="field">
+          <label id="origin-label">Origine</label>
+          <div className="segmented" role="radiogroup" aria-labelledby="origin-label">
+            <button type="button" role="radio" aria-checked={!form.is_manufactured} className={!form.is_manufactured ? 'on' : ''} onClick={() => setForm({ ...form, is_manufactured: false })}>Acheté</button>
+            <button type="button" role="radio" aria-checked={Boolean(form.is_manufactured)} className={form.is_manufactured ? 'on' : ''} onClick={() => setForm({ ...form, is_manufactured: true })}>Fabriqué</button>
+          </div>
+        </div>
+      )}
+      {form.is_manufactured && (
+        <RecipeEditor form={form} setForm={setForm} productId={product?.id}
+          errors={Object.entries(fields).filter(([k]) => k.startsWith('recipe') || k === 'batch_yield').map(([, v]) => v)} />
+      )}
       {!form.sold_by_weight && (
         <PricingEditor form={form} setForm={setForm}
           errors={Object.entries(fields).filter(([k]) => k.startsWith('units') || k.startsWith('tiers')).map(([, v]) => v)} />
@@ -179,6 +195,11 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
       {isPharmacy && (
         <label className="check">
           <input type="checkbox" name="track_batches" checked={Boolean(form.track_batches)} onChange={set} /> Suivre les lots et les dates de péremption
+        </label>
+      )}
+      {isBakery && !form.is_manufactured && (
+        <label className="check">
+          <input type="checkbox" name="sellable" checked={Boolean(form.sellable)} onChange={set} /> Vendu en caisse (décochez pour un ingrédient : farine, levure…)
         </label>
       )}
       <label className="check">

@@ -35,6 +35,12 @@ class ProductController extends Controller
             'tiers' => ['sometimes', 'array', 'max:10'],
             'tiers.*.min_quantity' => ['required', 'numeric', 'gt:1', 'max:999999', 'distinct'],
             'tiers.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999999999'],
+            'is_manufactured' => ['sometimes', 'boolean'],
+            'batch_yield' => ['nullable', 'numeric', 'gt:0', 'max:999999'],
+            'sellable' => ['sometimes', 'boolean'],
+            'recipe' => ['sometimes', 'array', 'max:30'],
+            'recipe.*.ingredient_id' => ['required', 'integer', 'exists:products,id', 'distinct'],
+            'recipe.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999'],
             'sold_by_weight' => ['sometimes', 'boolean'],
             'min_sale_quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
@@ -76,7 +82,7 @@ class ProductController extends Controller
         ]);
 
         $branch = app(\App\Services\CurrentBranch::class)->id();
-        $query = Product::query()->forBranch($branch)->with('category:id,name', 'barcodes:id,product_id,barcode,label,quantity', 'units', 'priceTiers')->orderBy('name');
+        $query = Product::query()->forBranch($branch)->with('category:id,name', 'barcodes:id,product_id,barcode,label,quantity', 'units', 'priceTiers', 'recipeItems.ingredient:id,name,unit,purchase_price')->orderBy('name');
 
         if ($term = trim((string) $request->query('q'))) {
             $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
@@ -98,6 +104,10 @@ class ProductController extends Controller
         }
         if ($request->filled('active')) {
             $query->where('is_active', $request->boolean('active'));
+        }
+        if ($request->filled('sellable')) {
+            // La caisse ne propose pas les ingrédients (farine, levure…).
+            $query->where('sellable', $request->boolean('sellable'));
         }
         if ($request->boolean('low_stock')) {
             // Stock bas = seuil défini (> 0) et quantité inférieure ou égale au seuil.
@@ -124,12 +134,13 @@ class ProductController extends Controller
         ]);
         $initial = (float) ($data['initial_stock'] ?? 0);
         $batch = $this->batchFrom($data, $initial);
-        [$units, $tiers] = [$data['units'] ?? null, $data['tiers'] ?? null];
-        unset($data['initial_stock'], $data['batch_number'], $data['expires_at'], $data['units'], $data['tiers']);
+        [$units, $tiers, $recipe] = [$data['units'] ?? null, $data['tiers'] ?? null, $data['recipe'] ?? null];
+        unset($data['initial_stock'], $data['batch_number'], $data['expires_at'], $data['units'], $data['tiers'], $data['recipe']);
 
-        $product = DB::transaction(function () use ($data, $initial, $batch, $stock, $request, $units, $tiers) {
+        $product = DB::transaction(function () use ($data, $initial, $batch, $stock, $request, $units, $tiers, $recipe) {
             $product = Product::create($this->withDefaults($data));
             $this->syncPricing($product, $units, $tiers);
+            $this->syncRecipe($product, $recipe);
 
             // SKU automatique si non fourni : PRD-00042
             if (blank($product->sku)) {
@@ -142,27 +153,28 @@ class ProductController extends Controller
             return $product;
         });
 
-        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers'), 201);
+        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers', 'recipeItems.ingredient:id,name,unit,purchase_price'), 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name', 'barcodes', 'units', 'priceTiers')->findOrFail($id)->applyBranch());
+        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name', 'barcodes', 'units', 'priceTiers', 'recipeItems.ingredient:id,name,unit,purchase_price')->findOrFail($id)->applyBranch());
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $product = Product::findOrFail($id);
         $data = $request->validate($this->rules($id));
-        [$units, $tiers] = [$data['units'] ?? null, $data['tiers'] ?? null];
-        unset($data['units'], $data['tiers']);
+        [$units, $tiers, $recipe] = [$data['units'] ?? null, $data['tiers'] ?? null, $data['recipe'] ?? null];
+        unset($data['units'], $data['tiers'], $data['recipe']);
 
-        DB::transaction(function () use ($product, $data, $units, $tiers) {
+        DB::transaction(function () use ($product, $data, $units, $tiers, $recipe) {
             $product->update($this->withDefaults($data));
             $this->syncPricing($product, $units, $tiers);
+            $this->syncRecipe($product, $recipe);
         });
 
-        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers'));
+        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers', 'recipeItems.ingredient:id,name,unit,purchase_price'));
     }
 
     public function destroy(int $id): JsonResponse
@@ -206,6 +218,27 @@ class ProductController extends Controller
             'movement' => $movement->load('user:id,name'),
             'product' => Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name')->find($id)->applyBranch(),
         ], 201);
+    }
+
+    /** Remplace la recette (null = inchangée). Un ingrédient ne peut être ni le produit lui-même ni un autre produit fabriqué. */
+    private function syncRecipe(Product $product, ?array $recipe): void
+    {
+        if ($recipe === null) {
+            return;
+        }
+        $ids = collect($recipe)->pluck('ingredient_id');
+        if ($ids->contains($product->id)) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['recipe' => ['Un produit ne peut pas être son propre ingrédient.']]);
+        }
+        if (Product::whereIn('id', $ids)->where('is_manufactured', true)->exists()) {
+            throw \Illuminate\Validation\ValidationException::withMessages(['recipe' => ['Un ingrédient ne peut pas être un produit fabriqué.']]);
+        }
+        $product->recipeItems()->delete();
+        if ($product->is_manufactured) {
+            foreach ($recipe as $r) {
+                $product->recipeItems()->create(['ingredient_id' => $r['ingredient_id'], 'quantity' => $r['quantity']]);
+            }
+        }
     }
 
     /** Remplace les conditionnements et les paliers du produit (null = inchangés). Un code-barres ne peut servir qu'une fois. */

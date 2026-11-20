@@ -125,6 +125,13 @@ Route::prefix('api')
                 Route::delete('categories/{id}', [CategoryController::class, 'destroy']);
             });
             Route::get('products/{id}/movements', [ProductController::class, 'movements'])->middleware('permission:products.view');
+            Route::prefix('production')->middleware('permission:production.manage')->group(function () {
+                Route::get('plan', [\App\Http\Controllers\ProductionController::class, 'plan']);
+                Route::post('preview', [\App\Http\Controllers\ProductionController::class, 'preview']);
+                Route::post('/', [\App\Http\Controllers\ProductionController::class, 'store']);
+                Route::get('unsold', [\App\Http\Controllers\ProductionController::class, 'unsold']);
+                Route::post('unsold', [\App\Http\Controllers\ProductionController::class, 'validateUnsold']);
+            });
             Route::get('products/{id}/batches', [ProductController::class, 'batches'])->middleware('permission:products.view');
             Route::get('products/{id}/equivalents', [ProductController::class, 'equivalents'])->middleware('permission:products.view');
             Route::get('stock/expiry', [\App\Http\Controllers\ExpiryController::class, 'index'])->middleware('permission:products.view');

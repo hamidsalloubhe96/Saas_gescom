@@ -28,6 +28,7 @@ $permissions = [
     'branches.manage' => 'Gérer les points de vente, leurs prix et leur équipe',
     'transfers.manage' => 'Créer et expédier les transferts de stock entre points de vente',
     'transfers.receive' => 'Demander et réceptionner des transferts de stock',
+    'production.manage' => 'Gérer la production (recettes, fournées) et le bilan des invendus',
     'billing.manage' => 'Gérer l\'abonnement et déclarer les paiements à la plateforme',
 ];
 
@@ -65,7 +66,7 @@ return [
             'description' => 'Produits, mouvements de stock et réception des commandes.',
             'permissions' => [
                 'products.view', 'products.manage', 'stock.move',
-                'suppliers.view', 'purchases.view', 'purchases.receive', 'transfers.manage', 'transfers.receive',
+                'suppliers.view', 'purchases.view', 'purchases.receive', 'transfers.manage', 'transfers.receive', 'production.manage',
             ],
         ],
         'accountant' => [

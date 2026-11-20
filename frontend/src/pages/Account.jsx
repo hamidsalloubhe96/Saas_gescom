@@ -19,7 +19,7 @@ export default function Account() {
     try {
       await api.put('/settings/business-type', { business_type: value })
       setBusinessType(value)
-      setTypeMsg(value === 'pharmacy' ? 'Mode pharmacie activé.' : 'Mode commerce général activé.')
+      setTypeMsg({ pharmacy: 'Mode pharmacie activé.', bakery: 'Mode boulangerie activé.' }[value] ?? 'Mode commerce général activé.')
     } catch (err) {
       setTypeMsg(parseError(err).message)
     } finally { setTypeBusy(false) }
@@ -82,6 +82,7 @@ export default function Account() {
             <select id="business_type" value={type} onChange={changeType} disabled={typeBusy}>
               <option value="general">Commerce général</option>
               <option value="pharmacy">Pharmacie</option>
+              <option value="bakery">Boulangerie</option>
             </select>
             <p className="field-hint">{typeMsg ?? 'Adapte le menu, le vocabulaire et les modules (lots, péremptions, équivalents).'}</p>
           </div>

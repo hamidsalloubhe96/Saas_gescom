@@ -10,9 +10,11 @@ class Product extends Model
 {
     // stock_quantity n'est volontairement PAS fillable : il ne change que via StockService.
     protected $fillable = [
-        'sku', 'barcode', 'name', 'active_ingredient', 'dosage', 'form', 'track_batches', 'category_id', 'unit', 'plu', 'sold_by_weight', 'min_sale_quantity', 'purchase_price', 'sale_price',
+        'sku', 'barcode', 'name', 'active_ingredient', 'dosage', 'form', 'track_batches', 'category_id', 'unit', 'plu', 'is_manufactured', 'batch_yield', 'sellable', 'sold_by_weight', 'min_sale_quantity', 'purchase_price', 'sale_price',
         'tax_rate', 'min_stock', 'notes', 'is_active',
     ];
+
+    protected $appends = ['recipe_cost', 'unit_cost'];
 
     protected function casts(): array
     {
@@ -25,6 +27,9 @@ class Product extends Model
             'is_active' => 'boolean',
             'track_batches' => 'boolean',
             'sold_by_weight' => 'boolean',
+            'is_manufactured' => 'boolean',
+            'sellable' => 'boolean',
+            'batch_yield' => 'decimal:3',
             'min_sale_quantity' => 'decimal:3',
         ];
     }
@@ -66,6 +71,29 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function recipeItems(): HasMany
+    {
+        return $this->hasMany(ProductRecipeItem::class)->orderBy('id');
+    }
+
+    /** Coût d'une fournée (prix d'achat des ingrédients) ; null si la recette ou les ingrédients ne sont pas chargés. */
+    public function getRecipeCostAttribute(): ?float
+    {
+        if (! $this->is_manufactured || ! $this->relationLoaded('recipeItems') || $this->recipeItems->contains(fn ($i) => ! $i->relationLoaded('ingredient'))) {
+            return null;
+        }
+
+        return round($this->recipeItems->sum(fn ($i) => (float) $i->quantity * (float) ($i->ingredient?->purchase_price ?? 0)), 2);
+    }
+
+    /** Coût d'une pièce fabriquée : coût de la fournée / rendement. */
+    public function getUnitCostAttribute(): ?float
+    {
+        $cost = $this->recipe_cost;
+
+        return ($cost !== null && (float) $this->batch_yield > 0) ? round($cost / (float) $this->batch_yield, 2) : null;
     }
 
     public function units(): HasMany

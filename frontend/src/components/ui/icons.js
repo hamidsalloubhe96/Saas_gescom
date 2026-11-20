@@ -38,6 +38,7 @@ export {
   Truck as SuppliersIcon,
   Package as ProductsIcon,
   Pill as PharmacyIcon,
+  ChefHat as ProductionIcon,
   CalendarClock as ExpiryIcon,
   FileText as InvoicesIcon,
   ShoppingCart as PurchasesIcon,

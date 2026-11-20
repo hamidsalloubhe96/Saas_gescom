@@ -5,11 +5,12 @@ import { useAuth } from '../auth'
 import AuthShell from '../components/AuthShell'
 import Field from '../components/Field'
 import Turnstile from '../components/Turnstile'
-import { PasswordField, PharmacyIcon, ProductsIcon } from '../components/ui'
+import { PasswordField, PharmacyIcon, ProductionIcon, ProductsIcon } from '../components/ui'
 
 const ACTIVITIES = [
   { value: 'general', label: 'Commerce général', hint: 'Supermarché, boutique, quincaillerie', Icon: ProductsIcon },
   { value: 'pharmacy', label: 'Pharmacie', hint: 'Lots, péremptions, équivalents', Icon: PharmacyIcon },
+  { value: 'bakery', label: 'Boulangerie', hint: 'Recettes, production, invendus', Icon: ProductionIcon },
 ]
 
 const slugify = (s) =>
@@ -22,7 +23,7 @@ export default function Register() {
   const [params] = useSearchParams()
   const [config, setConfig] = useState(null) // réglages publics : inscriptions ouvertes ? vérification d'e-mail ? anti-robot ?
   const [form, setForm] = useState({
-    company: '', slug: '', name: '', email: '', password: '', code: '', business_type: params.get('activite') === 'pharmacy' ? 'pharmacy' : 'general',
+    company: '', slug: '', name: '', email: '', password: '', code: '', business_type: ['pharmacy', 'bakery'].includes(params.get('activite')) ? params.get('activite') : 'general',
   })
   const [slugEdited, setSlugEdited] = useState(false)
   const [step, setStep] = useState('form') // form -> code (si la vérification d'e-mail est activée)
@@ -148,7 +149,7 @@ export default function Register() {
         </div>
         <fieldset className="mb-4 min-w-0 border-0 p-0">
           <legend className="mb-2 text-xs font-semibold text-muted">Type d'activité</legend>
-          <div role="radiogroup" aria-label="Type d'activité" className="grid gap-2 sm:grid-cols-2">
+          <div role="radiogroup" aria-label="Type d'activité" className="grid gap-2 sm:grid-cols-3">
             {ACTIVITIES.map((a) => {
               const on = form.business_type === a.value
               return (

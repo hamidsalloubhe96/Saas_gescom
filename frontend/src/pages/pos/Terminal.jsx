@@ -34,7 +34,7 @@ export default function Terminal({ onSold }) {
     let cancelled = false
     setLoadingP(true)
     const t = setTimeout(() => {
-      api.get('/products', { params: { q: q.trim() || undefined, active: 1, per_page: 24 } })
+      api.get('/products', { params: { q: q.trim() || undefined, active: 1, sellable: 1, per_page: 24 } })
         .then(({ data }) => { if (!cancelled) setProducts(data.data) })
         .catch((err) => { if (!cancelled) setNotice(parseError(err).message) })
         .finally(() => { if (!cancelled) setLoadingP(false) })

@@ -27,6 +27,14 @@ class ProductController extends Controller
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'unit' => ['nullable', 'string', 'max:20'],
             'plu' => ['nullable', 'regex:/^\d{1,5}$/', Rule::unique('products', 'plu')->ignore($ignoreId)],
+            'units' => ['sometimes', 'array', 'max:10'],
+            'units.*.name' => ['required', 'string', 'max:40', 'distinct:ignore_case'],
+            'units.*.quantity' => ['required', 'numeric', 'gt:1', 'max:999999'],
+            'units.*.sale_price' => ['required', 'numeric', 'min:0', 'max:999999999999'],
+            'units.*.barcode' => ['nullable', 'string', 'max:60', 'distinct'],
+            'tiers' => ['sometimes', 'array', 'max:10'],
+            'tiers.*.min_quantity' => ['required', 'numeric', 'gt:1', 'max:999999', 'distinct'],
+            'tiers.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999999999'],
             'sold_by_weight' => ['sometimes', 'boolean'],
             'min_sale_quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
@@ -68,7 +76,7 @@ class ProductController extends Controller
         ]);
 
         $branch = app(\App\Services\CurrentBranch::class)->id();
-        $query = Product::query()->forBranch($branch)->with('category:id,name', 'barcodes:id,product_id,barcode,label,quantity')->orderBy('name');
+        $query = Product::query()->forBranch($branch)->with('category:id,name', 'barcodes:id,product_id,barcode,label,quantity', 'units', 'priceTiers')->orderBy('name');
 
         if ($term = trim((string) $request->query('q'))) {
             $like = '%'.str_replace(['\\', '%', '_'], ['\\\\', '\\%', '\\_'], $term).'%';
@@ -116,10 +124,12 @@ class ProductController extends Controller
         ]);
         $initial = (float) ($data['initial_stock'] ?? 0);
         $batch = $this->batchFrom($data, $initial);
-        unset($data['initial_stock'], $data['batch_number'], $data['expires_at']);
+        [$units, $tiers] = [$data['units'] ?? null, $data['tiers'] ?? null];
+        unset($data['initial_stock'], $data['batch_number'], $data['expires_at'], $data['units'], $data['tiers']);
 
-        $product = DB::transaction(function () use ($data, $initial, $batch, $stock, $request) {
+        $product = DB::transaction(function () use ($data, $initial, $batch, $stock, $request, $units, $tiers) {
             $product = Product::create($this->withDefaults($data));
+            $this->syncPricing($product, $units, $tiers);
 
             // SKU automatique si non fourni : PRD-00042
             if (blank($product->sku)) {
@@ -132,20 +142,27 @@ class ProductController extends Controller
             return $product;
         });
 
-        return response()->json($product->refresh()->load('category:id,name'), 201);
+        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers'), 201);
     }
 
     public function show(int $id): JsonResponse
     {
-        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name', 'barcodes')->findOrFail($id)->applyBranch());
+        return response()->json(Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name', 'barcodes', 'units', 'priceTiers')->findOrFail($id)->applyBranch());
     }
 
     public function update(Request $request, int $id): JsonResponse
     {
         $product = Product::findOrFail($id);
-        $product->update($this->withDefaults($request->validate($this->rules($id))));
+        $data = $request->validate($this->rules($id));
+        [$units, $tiers] = [$data['units'] ?? null, $data['tiers'] ?? null];
+        unset($data['units'], $data['tiers']);
 
-        return response()->json($product->refresh()->load('category:id,name'));
+        DB::transaction(function () use ($product, $data, $units, $tiers) {
+            $product->update($this->withDefaults($data));
+            $this->syncPricing($product, $units, $tiers);
+        });
+
+        return response()->json($product->refresh()->load('category:id,name', 'units', 'priceTiers'));
     }
 
     public function destroy(int $id): JsonResponse
@@ -189,6 +206,33 @@ class ProductController extends Controller
             'movement' => $movement->load('user:id,name'),
             'product' => Product::forBranch(app(\App\Services\CurrentBranch::class)->id())->with('category:id,name')->find($id)->applyBranch(),
         ], 201);
+    }
+
+    /** Remplace les conditionnements et les paliers du produit (null = inchangés). Un code-barres ne peut servir qu'une fois. */
+    private function syncPricing(Product $product, ?array $units, ?array $tiers): void
+    {
+        if ($units !== null) {
+            foreach ($units as $u) {
+                $code = $u['barcode'] ?? null;
+                if (filled($code) && (
+                    Product::where('barcode', $code)->exists()
+                    || \App\Models\ProductBarcode::where('barcode', $code)->exists()
+                    || \App\Models\ProductUnit::where('barcode', $code)->where('product_id', '!=', $product->id)->exists()
+                )) {
+                    throw \Illuminate\Validation\ValidationException::withMessages(['units' => ["Le code-barres {$code} est déjà utilisé."]]);
+                }
+            }
+            $product->units()->delete();
+            foreach ($units as $u) {
+                $product->units()->create(['name' => trim($u['name']), 'quantity' => $u['quantity'], 'sale_price' => $u['sale_price'], 'barcode' => filled($u['barcode'] ?? null) ? $u['barcode'] : null]);
+            }
+        }
+        if ($tiers !== null) {
+            $product->priceTiers()->delete();
+            foreach ($tiers as $t) {
+                $product->priceTiers()->create(['min_quantity' => $t['min_quantity'], 'unit_price' => $t['unit_price']]);
+            }
+        }
     }
 
     private function batchFrom(array $data, float $quantity): ?array

@@ -32,6 +32,13 @@ class BarcodeController extends Controller
             $label = $extra->label;
         }
 
+        // Code d'un conditionnement (carton…) : on ajoute UN conditionnement, à son prix.
+        $unit = null;
+        if (! $product && ($u = \App\Models\ProductUnit::where('barcode', $code)->first())) {
+            $product = $base()->find($u->product_id);
+            $unit = $u->only(['id', 'name', 'quantity', 'sale_price']);
+        }
+
         // Étiquette de balance (poids ou prix dans le code) : le produit est retrouvé par son code court (PLU).
         if (! $product && ($scale = \App\Services\ScaleBarcode::parse($code))) {
             $product = $base()->where('plu', ltrim($scale['plu'], '0') === '' ? '0' : ltrim($scale['plu'], '0'))->first();
@@ -49,7 +56,9 @@ class BarcodeController extends Controller
             return response()->json(['message' => 'Code inconnu.', 'code' => 'barcode_unknown'], 404);
         }
 
-        return response()->json($product->applyBranch()->setAttribute('scan_quantity', $quantity)->setAttribute('scan_label', $label));
+        $product->load('units', 'priceTiers');
+
+        return response()->json($product->applyBranch()->setAttribute('scan_quantity', $quantity)->setAttribute('scan_label', $label)->setAttribute('scan_unit', $unit));
     }
 
     /** Génère un code interne libre (EAN-13, préfixe 200). */

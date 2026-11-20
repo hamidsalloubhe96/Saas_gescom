@@ -23,6 +23,20 @@ export const STATUS = {
 /** Unités de mesure : la ligne est affichée avec le poids et le prix au kilo. */
 export const isMeasured = (unit) => /^(kg|g|l|litres?)$/i.test((unit ?? '').trim())
 
+/**
+ * Prix unitaire de l'unité de base pour une quantité donnée : celui du plus haut palier atteint, sinon le prix normal.
+ * Un prix propre au point de vente (local_price) prime sur les paliers, comme côté serveur.
+ */
+export function tierPrice(product, qty) {
+  const base = Number(product.sale_price)
+  if (product.local_price) return base
+  let price = base
+  for (const t of product.price_tiers ?? []) {
+    if (qty >= Number(t.min_quantity)) price = Number(t.unit_price)
+  }
+  return price
+}
+
 export const METHODS = {
   cash: 'Espèces', card: 'Carte', transfer: 'Virement', cheque: 'Chèque', other: 'Autre',
 }

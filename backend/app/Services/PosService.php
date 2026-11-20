@@ -109,7 +109,9 @@ class PosService
             $customer = ! empty($data['customer_id']) ? Customer::findOrFail($data['customer_id']) : $this->walkIn();
 
             // Prix, désignation et TVA viennent de la base : le client n'envoie que produit et quantité.
-            $products = Product::whereIn('id', collect($data['lines'])->pluck('product_id'))->get()->keyBy('id');
+            $products = Product::with('units', 'priceTiers')->whereIn('id', collect($data['lines'])->pluck('product_id'))->get()->keyBy('id');
+            // Quantité totale en unité de base par produit : elle détermine le palier de prix.
+            $baseQty = collect($data['lines'])->filter(fn ($l) => empty($l['unit_id']))->groupBy('product_id')->map(fn ($g) => (float) $g->sum('quantity'));
             $localPrices = \App\Models\BranchPrice::where('branch_id', $session->branch_id)->pluck('sale_price', 'product_id');
             $lines = [];
             foreach ($data['lines'] as $l) {
@@ -117,12 +119,19 @@ class PosService
                 if (! $p->is_active) {
                     abort(422, "« {$p->name} » est inactif et ne peut pas être vendu.");
                 }
+                $packing = ! empty($l['unit_id']) ? $p->units->firstWhere('id', (int) $l['unit_id']) : null;
+                if (! empty($l['unit_id']) && ! $packing) {
+                    abort(422, "« {$p->name} » : conditionnement inconnu.");
+                }
+                // Prix : conditionnement > prix du point de vente > palier de quantité > prix normal.
+                $price = $packing ? (float) $packing->sale_price : (isset($localPrices[$p->id]) ? (float) $localPrices[$p->id] : $p->tierPrice((float) $baseQty->get($p->id, 0)));
                 $lines[] = [
                     'product_id' => $p->id,
                     'description' => $p->name,
                     'unit' => $p->unit,
+                    'unit_id' => $packing?->id,
                     'quantity' => $l['quantity'],
-                    'unit_price' => $localPrices[$p->id] ?? $p->sale_price,
+                    'unit_price' => $price,
                     'discount_rate' => $l['discount_rate'] ?? 0,
                     'tax_rate' => $p->tax_rate,
                 ];

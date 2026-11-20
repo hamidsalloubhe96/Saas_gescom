@@ -4,7 +4,7 @@ import api, { parseError } from '../../api'
 import Modal from '../../components/Modal'
 import ScanButton from '../../components/ScanButton'
 import { fmtMoney, fmtQty } from '../../lib/format'
-import { computeLine, computeTotals } from '../../lib/sales'
+import { computeLine, computeTotals, tierPrice } from '../../lib/sales'
 import PaymentDialog from './PaymentDialog'
 import WeightDialog from './WeightDialog'
 
@@ -48,9 +48,18 @@ export default function Terminal({ onSold }) {
     return () => clearTimeout(t)
   }, [notice])
 
+  // Une ligne du panier = un produit dans une unité (unité de base ou conditionnement). Le stock se compte en unité de base.
+  const lineKey = (c) => `${c.product.id}:${c.unit?.id ?? 0}`
+  const factor = (c) => (c.unit ? Number(c.unit.quantity) : 1)
+  const baseQty = (pid, list = cart) => list.filter((c) => c.product.id === pid && !c.unit).reduce((s, c) => s + (Number(c.quantity) || 0), 0)
+  const usedStock = (pid, list = cart) => list.filter((c) => c.product.id === pid).reduce((s, c) => s + (Number(c.quantity) || 0) * factor(c), 0)
+  // Prix : conditionnement, sinon palier atteint par la quantité totale du produit (mêmes règles que le serveur).
+  const priceOf = (c, list = cart) => (c.unit ? Number(c.unit.sale_price) : tierPrice(c.product, baseQty(c.product.id, list)))
+  const stockNotice = (p) => setNotice(`Stock disponible pour « ${p.name} » : ${fmtQty(p.stock_quantity)} ${p.unit}.`)
+
   const lines = useMemo(() => cart.map((c) => ({
-    quantity: c.quantity, unit_price: c.product.sale_price, tax_rate: c.product.tax_rate, discount_rate: 0, by_weight: c.product.sold_by_weight,
-  })), [cart])
+    quantity: c.quantity, unit_price: priceOf(c), tax_rate: c.product.tax_rate, discount_rate: 0, by_weight: c.product.sold_by_weight,
+  })), [cart]) // eslint-disable-line react-hooks/exhaustive-deps
   const totals = useMemo(() => computeTotals(lines), [lines])
   const validCart = cart.length > 0 && cart.every((c) => Number(c.quantity) > 0)
 
@@ -72,31 +81,43 @@ export default function Terminal({ onSold }) {
     return `${product.name} : ${fmtQty(weight)} ${product.unit} (balance)`
   }
 
-  function add(product, by = 1) {
+  function add(product, by = 1, unit = null) {
     const stock = Number(product.stock_quantity)
     if (stock <= 0) return setNotice(`« ${product.name} » est en rupture de stock.`)
     if (product.sold_by_weight) {
       // Un code-barres de balance peut déjà porter le poids ; sinon on demande la pesée.
       return by !== 1 ? setWeight(product, by) : setWeighing(product)
     }
-    const i = cart.findIndex((c) => c.product.id === product.id)
-    if (i < 0) {
-      if (by > stock) return setNotice(`Stock disponible pour « ${product.name} » : ${fmtQty(stock)}.`)
-      return setCart([...cart, { product, quantity: by }])
-    }
-    const next = Number(cart[i].quantity) + by
-    if (next > stock) return setNotice(`Stock disponible pour « ${product.name} » : ${fmtQty(stock)}.`)
-    setCart(cart.map((c, j) => (j === i ? { ...c, quantity: next } : c)))
+    const line = { product, unit, quantity: by }
+    if (usedStock(product.id) + by * factor(line) > stock) return stockNotice(product)
+    const i = cart.findIndex((c) => lineKey(c) === lineKey(line))
+    setCart(i < 0 ? [...cart, line] : cart.map((c, j) => (j === i ? { ...c, quantity: Number(c.quantity) + by } : c)))
   }
 
-  function setQuantity(id, value) {
-    const item = cart.find((c) => c.product.id === id)
+  function setQuantity(key, value) {
+    const item = cart.find((c) => lineKey(c) === key)
     const stock = Number(item.product.stock_quantity)
-    if (value !== '' && Number(value) > stock) {
-      setNotice(`Stock disponible pour « ${item.product.name} » : ${fmtQty(stock)}.`)
-      value = String(stock)
+    const others = usedStock(item.product.id) - (Number(item.quantity) || 0) * factor(item)
+    const max = Math.max(0, Math.floor(((stock - others) / factor(item)) * 1000) / 1000)
+    if (value !== '' && Number(value) > max) {
+      stockNotice(item.product)
+      value = String(max)
     }
-    setCart(cart.map((c) => (c.product.id === id ? { ...c, quantity: value } : c)))
+    setCart(cart.map((c) => (lineKey(c) === key ? { ...c, quantity: value } : c)))
+  }
+
+  /** Change l'unité d'une ligne (pièce, carton…) ; si la ligne existe déjà dans cette unité, elles fusionnent. */
+  function changeUnit(key, unitId) {
+    const item = cart.find((c) => lineKey(c) === key)
+    const unit = unitId ? item.product.units.find((u) => String(u.id) === String(unitId)) : null
+    const moved = { ...item, unit }
+    const rest = cart.filter((c) => lineKey(c) !== key)
+    const twin = rest.find((c) => lineKey(c) === lineKey(moved))
+    const next = twin
+      ? [...rest.filter((c) => c !== twin), { ...twin, quantity: Number(twin.quantity) + Number(moved.quantity) }]
+      : cart.map((c) => (lineKey(c) === key ? moved : c))
+    if (usedStock(item.product.id, next) > Number(item.product.stock_quantity)) return stockNotice(item.product)
+    setCart(next)
   }
 
   /** Code lu par la caméra : on retrouve le produit (code-barres ou référence exacte) et on l'ajoute au panier. */
@@ -105,6 +126,11 @@ export default function Terminal({ onSold }) {
       const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
       // Étiquette de balance : le poids est dans le code, pas de pesée à refaire.
       if (data.scan_label === 'Balance') return addWeighed(data)
+      // Code d'un conditionnement (carton…) : on ajoute un conditionnement, à son prix.
+      if (data.scan_unit) {
+        add(data, 1, data.scan_unit)
+        return `${data.name} : 1 ${data.scan_unit.name}`
+      }
       add(data, data.scan_quantity ?? 1)
       return `${data.name} ajouté${data.scan_quantity > 1 ? ` (× ${fmtQty(data.scan_quantity)})` : ''}`
     } catch (err) {
@@ -130,7 +156,7 @@ export default function Terminal({ onSold }) {
   async function confirmSale(payments) {
     const { data } = await api.post('/pos/sales', {
       customer_id: customerId || null,
-      lines: cart.map((c) => ({ product_id: c.product.id, quantity: Number(c.quantity) })),
+      lines: cart.map((c) => ({ product_id: c.product.id, quantity: Number(c.quantity), unit_id: c.unit?.id ?? null })),
       payments,
     })
     setPaying(false)
@@ -166,10 +192,20 @@ export default function Terminal({ onSold }) {
         <h2>Panier</h2>
         <div className="cart-lines">
           {cart.map((c) => (
-            <div className="cart-line" key={c.product.id}>
+            <div className="cart-line" key={lineKey(c)}>
               <div className="cart-name">
                 <strong>{c.product.name}</strong>
-                <span className="muted small">{fmtMoney(c.product.sale_price)} / {c.product.unit}</span>
+                <span className="muted small">
+                  {fmtMoney(priceOf(c))} / {c.unit ? c.unit.name : c.product.unit}
+                  {!c.unit && priceOf(c) < Number(c.product.sale_price) && <> <span className="pill pill-on">Palier</span></>}
+                </span>
+                {c.product.units?.length > 0 && !c.product.sold_by_weight && (
+                  <select aria-label={`Unité de ${c.product.name}`} value={c.unit?.id ?? ''} onChange={(e) => changeUnit(lineKey(c), e.target.value)}
+                    className="mt-1 w-auto rounded-lg border border-line bg-surface px-2 py-1 text-xs">
+                    <option value="">{c.product.unit}</option>
+                    {c.product.units.map((u) => <option key={u.id} value={u.id}>{u.name} ({fmtQty(u.quantity)})</option>)}
+                  </select>
+                )}
               </div>
               {c.product.sold_by_weight ? (
                 <button type="button" className="btn btn-secondary btn-inline" onClick={() => setWeighing(c.product)}
@@ -177,15 +213,15 @@ export default function Terminal({ onSold }) {
               ) : (
                 <div className="cart-qty">
                   <button type="button" aria-label="Diminuer"
-                    onClick={() => setQuantity(c.product.id, String(Math.max(0, Number(c.quantity) - 1)))}>−</button>
+                    onClick={() => setQuantity(lineKey(c), String(Math.max(0, Number(c.quantity) - 1)))}>−</button>
                   <input type="number" min="0" step="any" inputMode="decimal" aria-label={`Quantité ${c.product.name}`}
-                    value={c.quantity} onChange={(e) => setQuantity(c.product.id, e.target.value)} />
-                  <button type="button" aria-label="Augmenter" onClick={() => add(c.product)}>+</button>
+                    value={c.quantity} onChange={(e) => setQuantity(lineKey(c), e.target.value)} />
+                  <button type="button" aria-label="Augmenter" onClick={() => add(c.product, 1, c.unit)}>+</button>
                 </div>
               )}
-              <div className="cart-total">{fmtMoney(computeLine({ ...c, unit_price: c.product.sale_price, tax_rate: 0, by_weight: c.product.sold_by_weight }).net)}</div>
+              <div className="cart-total">{fmtMoney(computeLine({ ...c, unit_price: priceOf(c), tax_rate: 0, by_weight: c.product.sold_by_weight }).net)}</div>
               <button type="button" className="link-btn danger" aria-label={`Retirer ${c.product.name}`}
-                onClick={() => setCart(cart.filter((x) => x.product.id !== c.product.id))}>✕</button>
+                onClick={() => setCart(cart.filter((x) => lineKey(x) !== lineKey(c)))}>✕</button>
             </div>
           ))}
           {cart.length === 0 && <p className="muted empty-cart">Le panier est vide.<br />Touchez un produit pour l'ajouter.</p>}

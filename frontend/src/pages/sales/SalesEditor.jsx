@@ -2,10 +2,10 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api, { parseError } from '../../api'
 import { fmtMoney } from '../../lib/format'
-import { TYPE_LABEL, addDays, computeLine, computeTotals, describeFieldErrors, today } from '../../lib/sales'
+import { TYPE_LABEL, addDays, computeLine, computeTotals, describeFieldErrors, tierPrice, today } from '../../lib/sales'
 
 const blankLine = (key) => ({
-  key, product_id: '', description: '', unit: '', quantity: 1, unit_price: '', discount_rate: '', tax_rate: '',
+  key, product_id: '', unit_id: '', price_auto: false, description: '', unit: '', quantity: 1, unit_price: '', discount_rate: '', tax_rate: '',
 })
 
 export default function SalesEditor() {
@@ -44,7 +44,10 @@ export default function SalesEditor() {
           setType(d.type)
           setForm({ customer_id: d.customer_id, issue_date: d.issue_date, due_date: d.due_date ?? '', notes: d.notes ?? '' })
           setLines(d.lines.map((l) => ({
-            key: nextKey(), product_id: l.product_id ?? '', description: l.description, unit: l.unit ?? '',
+            // Le conditionnement d'une ligne enregistrée est retrouvé par son nom ; son prix enregistré est conservé.
+            key: nextKey(), product_id: l.product_id ?? '', price_auto: false,
+            unit_id: p.data.data.find((x) => x.id === l.product_id)?.units?.find((u) => u.name === l.unit)?.id ?? '',
+            description: l.description, unit: l.unit ?? '',
             quantity: l.quantity, unit_price: l.unit_price, discount_rate: l.discount_rate, tax_rate: l.tax_rate,
           })))
           // Le client d'un document peut avoir été désactivé depuis : on le garde dans la liste.
@@ -64,13 +67,27 @@ export default function SalesEditor() {
   const totals = useMemo(() => computeTotals(lines), [lines])
 
   const setField = (e) => setForm({ ...form, [e.target.name]: e.target.value })
-  const setLine = (key, patch) => setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)))
+  const productOf = (l) => products.find((x) => String(x.id) === String(l.product_id))
+
+  /** Lignes dont le prix n'a pas été saisi à la main : prix du conditionnement, ou du palier atteint par la quantité totale du produit. */
+  const reprice = (ls) => ls.map((l) => {
+    const p = productOf(l)
+    if (!l.price_auto || !p) return l
+    if (l.unit_id) {
+      const u = p.units?.find((x) => String(x.id) === String(l.unit_id))
+      return u ? { ...l, unit_price: u.sale_price } : l
+    }
+    const qty = ls.filter((x) => String(x.product_id) === String(l.product_id) && !x.unit_id).reduce((s, x) => s + (Number(x.quantity) || 0), 0)
+    return { ...l, unit_price: tierPrice(p, qty) }
+  })
+
+  const setLine = (key, patch) => setLines((ls) => reprice(ls.map((l) => (l.key === key ? { ...l, ...patch } : l))))
 
   function pickProduct(key, productId) {
     const p = products.find((x) => String(x.id) === String(productId))
-    if (!p) return setLine(key, { product_id: '' })
+    if (!p) return setLine(key, { product_id: '', unit_id: '', price_auto: false })
     setLine(key, {
-      product_id: p.id, description: p.name, unit: p.unit, unit_price: p.sale_price, tax_rate: p.tax_rate,
+      product_id: p.id, unit_id: '', price_auto: true, description: p.name, unit: p.unit, unit_price: p.sale_price, tax_rate: p.tax_rate,
     })
   }
 
@@ -81,7 +98,7 @@ export default function SalesEditor() {
     const payload = {
       type, ...form,
       due_date: form.due_date || null,
-      lines: lines.map(({ key, ...l }) => ({ ...l, product_id: l.product_id || null })),
+      lines: lines.map(({ key, price_auto, ...l }) => ({ ...l, product_id: l.product_id || null, unit_id: l.unit_id || null })),
     }
     if (isEdit) delete payload.type
     try {
@@ -159,18 +176,28 @@ export default function SalesEditor() {
                       <option value="">Ligne libre</option>
                       {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                     </select>
+                    {productOf(l)?.units?.length > 0 && (
+                      <select aria-label={`Unité ligne ${i + 1}`} value={l.unit_id} className="mt-1"
+                        onChange={(e) => {
+                          const u = productOf(l).units.find((x) => String(x.id) === e.target.value)
+                          setLine(l.key, { unit_id: e.target.value, unit: u ? u.name : productOf(l).unit, price_auto: true })
+                        }}>
+                        <option value="">{productOf(l).unit}</option>
+                        {productOf(l).units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.quantity})</option>)}
+                      </select>
+                    )}
                   </td>
                   <td><input aria-label={`Désignation ligne ${i + 1}`} value={l.description}
                     onChange={(e) => setLine(l.key, { description: e.target.value })} maxLength={255} /></td>
                   <td><input className="num" type="number" min="0" step="any" aria-label={`Quantité ligne ${i + 1}`}
                     value={l.quantity} onChange={(e) => setLine(l.key, { quantity: e.target.value })} /></td>
                   <td><input className="num" type="number" min="0" step="0.01" aria-label={`Prix ligne ${i + 1}`}
-                    value={l.unit_price} onChange={(e) => setLine(l.key, { unit_price: e.target.value })} /></td>
+                    value={l.unit_price} onChange={(e) => setLine(l.key, { unit_price: e.target.value, price_auto: false })} /></td>
                   <td><input className="num" type="number" min="0" max="100" step="0.01" aria-label={`Remise ligne ${i + 1}`}
                     value={l.discount_rate} onChange={(e) => setLine(l.key, { discount_rate: e.target.value })} /></td>
                   <td><input className="num" type="number" min="0" max="100" step="0.01" aria-label={`TVA ligne ${i + 1}`}
                     value={l.tax_rate} onChange={(e) => setLine(l.key, { tax_rate: e.target.value })} /></td>
-                  <td className="num">{fmtMoney(computeLine(l).net)}</td>
+                  <td className="num">{fmtMoney(computeLine({ ...l, by_weight: productOf(l)?.sold_by_weight }).net)}</td>
                   <td>
                     <button type="button" className="link-btn danger" aria-label={`Supprimer la ligne ${i + 1}`}
                       disabled={lines.length === 1} onClick={() => setLines(lines.filter((x) => x.key !== l.key))}>✕</button>

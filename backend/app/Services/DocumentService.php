@@ -22,7 +22,8 @@ class DocumentService
         $subtotal = 0.0;
         $tax = 0.0;
         // Produits vendus au poids : montant arrondi à l'unité (pas de centimes) et poids minimum respecté.
-        $weighed = \App\Models\Product::whereIn('id', collect($lines)->pluck('product_id')->filter())->where('sold_by_weight', true)->get()->keyBy('id');
+        $products = \App\Models\Product::with('units')->whereIn('id', collect($lines)->pluck('product_id')->filter())->get()->keyBy('id');
+        $weighed = $products->where('sold_by_weight', true);
 
         foreach (array_values($lines) as $i => $l) {
             $qty = round((float) $l['quantity'], 3);
@@ -40,11 +41,24 @@ class DocumentService
             $subtotal += $net;
             $tax += round($net * $rate / 100, 2);
 
+            // Conditionnement (carton…) : le stock sortira de quantité × contenu du conditionnement.
+            $unitName = $l['unit'] ?? null;
+            $factor = 1.0;
+            if (! empty($l['unit_id'])) {
+                $packing = $products->get($l['product_id'] ?? 0)?->units->firstWhere('id', (int) $l['unit_id']);
+                if (! $packing) {
+                    abort(422, "« {$l['description']} » : conditionnement inconnu pour ce produit.");
+                }
+                $unitName = $packing->name;
+                $factor = (float) $packing->quantity;
+            }
+
             $out[] = [
                 'product_id' => $l['product_id'] ?? null,
                 'position' => $i,
                 'description' => $l['description'],
-                'unit' => $l['unit'] ?? null,
+                'unit' => $unitName,
+                'unit_factor' => $factor,
                 'quantity' => $qty,
                 'unit_price' => $price,
                 'discount_rate' => $discount,
@@ -174,7 +188,7 @@ class DocumentService
 
         foreach ($lines->whereNotNull('product_id') as $line) {
             try {
-                $this->stock->move($line->product_id, 'out', (float) $line->quantity, "Facture $number", $userId, $doc->branch_id, sale: true);
+                $this->stock->move($line->product_id, 'out', (float) $line->quantity * (float) $line->unit_factor, "Facture $number", $userId, $doc->branch_id, sale: true);
             } catch (ValidationException $e) {
                 abort(422, "« {$line->description} » : ".($e->errors()['quantity'][0] ?? 'stock insuffisant.'));
             }
@@ -192,7 +206,7 @@ class DocumentService
         }
 
         foreach ($doc->lines()->whereNotNull('product_id')->get() as $line) {
-            $this->stock->move($line->product_id, 'in', (float) $line->quantity, "Annulation facture {$doc->number}", $userId, $doc->branch_id);
+            $this->stock->move($line->product_id, 'in', (float) $line->quantity * (float) $line->unit_factor, "Annulation facture {$doc->number}", $userId, $doc->branch_id);
         }
 
         $doc->update(['status' => 'cancelled']);
@@ -224,7 +238,7 @@ class DocumentService
 
             $invoice->lines()->createMany(
                 $quote->lines()->get()->map(fn ($l) => collect($l->only([
-                    'product_id', 'position', 'description', 'unit', 'quantity',
+                    'product_id', 'position', 'description', 'unit', 'unit_factor', 'quantity',
                     'unit_price', 'discount_rate', 'tax_rate', 'line_total',
                 ]))->all())->all(),
             );

@@ -23,6 +23,7 @@ class SalesDocumentController extends Controller
             'lines.*.product_id' => ['nullable', 'integer', 'exists:products,id'],
             'lines.*.description' => ['required', 'string', 'max:255'],
             'lines.*.unit' => ['nullable', 'string', 'max:20'],
+            'lines.*.unit_id' => ['nullable', 'integer', 'exists:product_units,id'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999'],
             'lines.*.unit_price' => ['required', 'numeric', 'min:0', 'max:999999999999'],
             'lines.*.discount_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],

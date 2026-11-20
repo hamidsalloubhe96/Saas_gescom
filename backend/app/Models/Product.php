@@ -47,7 +47,9 @@ class Product extends Model
     {
         if (array_key_exists('branch_stock', $this->attributes) || array_key_exists('branch_price', $this->attributes)) {
             $this->attributes['stock_quantity'] = $this->attributes['branch_stock'] ?? 0;
-            if (($this->attributes['branch_price'] ?? null) !== null) {
+            // Un prix propre au point de vente remplace le prix du catalogue ; les paliers ne s'appliquent alors plus.
+            $this->attributes['local_price'] = ($this->attributes['branch_price'] ?? null) !== null;
+            if ($this->attributes['local_price']) {
                 $this->attributes['sale_price'] = $this->attributes['branch_price'];
             }
             unset($this->attributes['branch_stock'], $this->attributes['branch_price']);
@@ -64,6 +66,29 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    public function units(): HasMany
+    {
+        return $this->hasMany(ProductUnit::class)->orderBy('quantity');
+    }
+
+    public function priceTiers(): HasMany
+    {
+        return $this->hasMany(ProductPriceTier::class)->orderBy('min_quantity');
+    }
+
+    /** Prix unitaire de l'unité de base pour une quantité donnée : celui du plus haut palier atteint, sinon le prix normal. */
+    public function tierPrice(float $quantity, ?float $basePrice = null): float
+    {
+        $price = $basePrice ?? (float) $this->sale_price;
+        foreach ($this->priceTiers as $tier) {
+            if ($quantity >= (float) $tier->min_quantity) {
+                $price = (float) $tier->unit_price;
+            }
+        }
+
+        return $price;
     }
 
     public function batches(): HasMany

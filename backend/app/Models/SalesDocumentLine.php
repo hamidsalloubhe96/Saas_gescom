@@ -9,7 +9,7 @@ class SalesDocumentLine extends Model
     public $timestamps = false;
 
     protected $fillable = [
-        'sales_document_id', 'product_id', 'position', 'description', 'unit', 'quantity',
+        'sales_document_id', 'product_id', 'position', 'description', 'unit', 'unit_factor', 'quantity',
         'unit_price', 'discount_rate', 'tax_rate', 'line_total',
     ];
 
@@ -17,6 +17,7 @@ class SalesDocumentLine extends Model
     {
         return [
             'quantity' => 'decimal:3',
+            'unit_factor' => 'decimal:3',
             'unit_price' => 'decimal:2',
             'discount_rate' => 'decimal:2',
             'tax_rate' => 'decimal:2',

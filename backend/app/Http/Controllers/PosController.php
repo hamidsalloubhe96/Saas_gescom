@@ -82,6 +82,7 @@ class PosController extends Controller
             'lines' => ['required', 'array', 'min:1', 'max:100'],
             'lines.*.product_id' => ['required', 'integer', 'exists:products,id'],
             'lines.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999'],
+            'lines.*.unit_id' => ['nullable', 'integer', 'exists:product_units,id'],
             'lines.*.discount_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'payments' => ['nullable', 'array', 'max:10'],
             'payments.*.method' => ['required', 'in:cash,card,transfer,cheque,other'],

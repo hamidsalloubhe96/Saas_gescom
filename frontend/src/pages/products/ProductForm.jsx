@@ -7,13 +7,14 @@ import { GenerateIcon } from '../../components/ui'
 import { barcodeWarning } from '../../lib/barcode'
 import { useBusiness } from '../../lib/business'
 import Equivalents from './Equivalents'
+import PricingEditor from './PricingEditor'
 
 const WEIGHT_UNITS = ['kg', 'litre']
 
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
-  plu: '', sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
+  units: [], tiers: [], plu: '', sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
 }
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
@@ -21,7 +22,7 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
   const { isPharmacy, w } = useBusiness()
   const [form, setForm] = useState(() =>
     isEdit
-      ? Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]]))
+      ? { ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]])), tiers: product.price_tiers ?? [] }
       : { ...EMPTY, track_batches: isPharmacy, ...defaults },
   )
   const [fields, setFields] = useState({})
@@ -53,6 +54,9 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
     setFields({})
     const payload = { ...form }
     if (isEdit) { delete payload.initial_stock; delete payload.batch_number; delete payload.expires_at }
+    // Lignes de conditionnement et de palier vides : ignorées. Un produit au poids n'a ni l'un ni l'autre.
+    payload.units = payload.sold_by_weight ? [] : (payload.units ?? []).filter((u) => u.name || u.quantity || u.sale_price)
+    payload.tiers = payload.sold_by_weight ? [] : (payload.tiers ?? []).filter((t) => t.min_quantity || t.unit_price)
     try {
       if (isEdit) await api.put(`/products/${product.id}`, payload)
       else await api.post('/products', payload)
@@ -163,6 +167,10 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         </div>
       )}
       {isEdit && form.active_ingredient && <Equivalents productId={product.id} />}
+      {!form.sold_by_weight && (
+        <PricingEditor form={form} setForm={setForm}
+          errors={Object.entries(fields).filter(([k]) => k.startsWith('units') || k.startsWith('tiers')).map(([, v]) => v)} />
+      )}
       <div className="field">
         <label htmlFor="notes">Notes</label>
         <textarea id="notes" name="notes" rows="2" value={form.notes ?? ''} onChange={set} />

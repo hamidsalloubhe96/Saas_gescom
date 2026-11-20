@@ -80,7 +80,7 @@ return new class extends Migration
         // Forfaits de départ : valeurs d'exemple à ajuster dans la console (Forfaits).
         $now = now();
         DB::table('plans')->insert([
-            ['slug' => 'essai', 'name' => 'Essai gratuit', 'description' => 'Pour découvrir GestCom', 'price' => 0, 'currency' => 'XOF', 'period_months' => 1,
+            ['slug' => 'essai', 'name' => 'Essai gratuit', 'description' => 'Pour découvrir Salloubhe Gescom', 'price' => 0, 'currency' => 'XOF', 'period_months' => 1,
                 'max_users' => 3, 'max_products' => 100, 'max_invoices_month' => 50, 'is_trial' => true, 'trial_days' => 14, 'is_active' => true, 'sort' => 0],
             ['slug' => 'petite', 'name' => 'Petite entreprise', 'description' => 'Pour démarrer', 'price' => 10000, 'currency' => 'XOF', 'period_months' => 1,
                 'max_users' => 3, 'max_products' => 300, 'max_invoices_month' => 200, 'is_trial' => false, 'trial_days' => null, 'is_active' => true, 'sort' => 1],

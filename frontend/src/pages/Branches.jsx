@@ -75,7 +75,7 @@ export default function Branches() {
 
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Point de vente</th><th className="num">Ventes du jour</th><th className="num">Ventes du mois</th><th className="num">Valeur du stock</th><th className="num">Stock bas</th><th>Caisse</th><th>Transferts</th><th /></tr></thead>
+          <thead><tr><th>Point de vente</th><th className="num">Ventes du jour</th><th className="num">Ventes du mois</th><th className="num">Valeur du stock</th><th className="num">Stock bas</th><th>Caisse</th><th>Transferts</th><th className="actions">Actions</th></tr></thead>
           <tbody>
             {data.branches.map((b) => (
               <tr key={b.id} className={b.is_active ? '' : 'muted'}>

@@ -109,7 +109,7 @@ export default function Labels() {
 
           <div className="table-wrap flat">
             <table>
-              <thead><tr><th>Produit</th><th>Code</th><th className="num" style={{ width: 130 }}>Étiquettes</th><th /></tr></thead>
+              <thead><tr><th>Produit</th><th>Code</th><th className="num" style={{ width: 130 }}>Étiquettes</th><th className="actions">Actions</th></tr></thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.product.id}>

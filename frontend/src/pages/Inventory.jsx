@@ -110,7 +110,7 @@ export default function Inventory() {
 
       <div className="table-wrap">
         <table>
-          <thead><tr><th>Produit</th><th className="num">Stock actuel</th><th className="num" style={{ width: 150 }}>Compté</th><th className="num">Écart</th><th /></tr></thead>
+          <thead><tr><th>Produit</th><th className="num">Stock actuel</th><th className="num" style={{ width: 150 }}>Compté</th><th className="num">Écart</th><th className="actions">Actions</th></tr></thead>
           <tbody>
             {rows.map((r) => {
               const d = diff(r)

@@ -123,6 +123,6 @@ Variables utiles : `APP_KEY`, `APP_URL`, `CENTRAL_DOMAINS`, `MAIL_*`, `CONSOLE_A
 ## Tester l'image en local
 
 ```bash
-docker build -t gestcom .
-docker run --rm -p 8080:8080 -e APP_KEY=base64:... -e DB_URL=postgresql://... -e DB_SSLMODE=prefer gestcom
+docker build -t salloubhe-gescom .
+docker run --rm -p 8080:8080 -e APP_KEY=base64:... -e DB_URL=postgresql://... -e DB_SSLMODE=prefer salloubhe-gescom
 ```

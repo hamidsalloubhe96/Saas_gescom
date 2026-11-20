@@ -136,7 +136,7 @@ export default function Partners({ resource, title, singular, extra }) {
         <table>
           <thead>
             <tr>
-              <th>Nom</th><th>Contact</th><th>Ville</th><th>{extra.label}</th><th>Statut</th><th />
+              <th>Nom</th><th>Contact</th><th>Ville</th><th>{extra.label}</th><th>Statut</th><th className="actions">Actions</th>
             </tr>
           </thead>
           <tbody>

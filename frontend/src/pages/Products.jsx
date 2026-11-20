@@ -135,7 +135,7 @@ export default function Products() {
           <thead>
             <tr>
               <th>Produit</th><th>Catégorie</th><th className="num">Prix de vente</th>
-              <th className="num">Stock</th><th>Statut</th><th />
+              <th className="num">Stock</th><th>Statut</th><th className="actions">Actions</th>
             </tr>
           </thead>
           <tbody>

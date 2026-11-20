@@ -78,7 +78,7 @@ export default function Users() {
 
       <div className="table-wrap" aria-busy={loading}>
         <table>
-          <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th /></tr></thead>
+          <thead><tr><th>Nom</th><th>Email</th><th>Rôle</th><th>Statut</th><th className="actions">Actions</th></tr></thead>
           <tbody>
             {users.map((u) => (
               <tr key={u.id}>

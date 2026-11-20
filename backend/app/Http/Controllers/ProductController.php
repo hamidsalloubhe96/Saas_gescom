@@ -12,7 +12,7 @@ use Illuminate\Validation\Rule;
 
 class ProductController extends Controller
 {
-    private const NUMERIC_DEFAULTS = ['purchase_price', 'sale_price', 'tax_rate', 'min_stock'];
+    private const NUMERIC_DEFAULTS = ['purchase_price', 'sale_price', 'tax_rate', 'min_stock', 'min_sale_quantity'];
 
     private function rules(?int $ignoreId = null): array
     {
@@ -26,6 +26,8 @@ class ProductController extends Controller
             'barcode' => ['nullable', 'string', 'max:60', Rule::unique('products', 'barcode')->ignore($ignoreId), Rule::unique('product_barcodes', 'barcode')],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'unit' => ['nullable', 'string', 'max:20'],
+            'sold_by_weight' => ['sometimes', 'boolean'],
+            'min_sale_quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
             'sale_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
             'tax_rate' => ['nullable', 'numeric', 'min:0', 'max:100'],

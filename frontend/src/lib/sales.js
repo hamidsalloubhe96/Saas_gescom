@@ -20,6 +20,9 @@ export const STATUS = {
   },
 }
 
+/** Unités de mesure : la ligne est affichée avec le poids et le prix au kilo. */
+export const isMeasured = (unit) => /^(kg|g|l|litres?)$/i.test((unit ?? '').trim())
+
 export const METHODS = {
   cash: 'Espèces', card: 'Carte', transfer: 'Virement', cheque: 'Chèque', other: 'Autre',
 }
@@ -31,7 +34,9 @@ export function computeLine(l) {
   const price = Number(l.unit_price) || 0
   const disc = Number(l.discount_rate) || 0
   const rate = Number(l.tax_rate) || 0
-  const net = r2(qty * price * (1 - disc / 100))
+  const raw = r2(qty * price * (1 - disc / 100))
+  // Produit vendu au poids : montant arrondi à l'unité, comme côté serveur.
+  const net = l.by_weight ? Math.round(raw) : raw
   return { net, tax: r2((net * rate) / 100) }
 }
 

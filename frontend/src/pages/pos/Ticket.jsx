@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
-import { fmtDate, fmtMoney, fmtQty } from '../../lib/format'
-import { METHODS } from '../../lib/sales'
+import { fmtDate, fmtMoney, fmtMoney0, fmtQty } from '../../lib/format'
+import { isMeasured, METHODS } from '../../lib/sales'
 
 export default function Ticket() {
   const { id } = useParams()
@@ -38,9 +38,12 @@ export default function Ticket() {
         {named && <div className="receipt-center">Client : {doc.customer.name}</div>}
         <hr />
         {doc.lines.map((l) => (
-          <div className="receipt-line" key={l.id}>
-            <span>{fmtQty(l.quantity)} × {l.description}</span>
-            <span>{fmtMoney(Number(l.line_total) * (1 + Number(l.tax_rate) / 100))}</span>
+          <div key={l.id}>
+            <div className="receipt-line">
+              <span>{isMeasured(l.unit) ? l.description : `${fmtQty(l.quantity)} × ${l.description}`}</span>
+              <span>{fmtMoney(Number(l.line_total) * (1 + Number(l.tax_rate) / 100))}</span>
+            </div>
+            {isMeasured(l.unit) && <div className="muted small">{fmtQty(l.quantity)} {l.unit} × {fmtMoney0(l.unit_price)} / {l.unit}</div>}
           </div>
         ))}
         <hr />

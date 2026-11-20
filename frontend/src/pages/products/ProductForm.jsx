@@ -8,10 +8,12 @@ import { barcodeWarning } from '../../lib/barcode'
 import { useBusiness } from '../../lib/business'
 import Equivalents from './Equivalents'
 
+const WEIGHT_UNITS = ['kg', 'litre']
+
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
-  active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
+  sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
 }
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
@@ -97,6 +99,16 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
       {isEdit
         ? <ExtraBarcodes product={product} unit={form.unit || 'pièce'} />
         : <p className="mb-4 text-xs text-muted">Enregistrez d’abord le produit pour lui ajouter d’autres codes (carton, autre fournisseur).</p>}
+      <div className="field">
+        <label id="sold-label">Vendu</label>
+        <div className="segmented" role="radiogroup" aria-labelledby="sold-label">
+          <button type="button" role="radio" aria-checked={!form.sold_by_weight} className={!form.sold_by_weight ? 'on' : ''}
+            onClick={() => setForm({ ...form, sold_by_weight: false, min_sale_quantity: '' })}>À la pièce</button>
+          <button type="button" role="radio" aria-checked={Boolean(form.sold_by_weight)} className={form.sold_by_weight ? 'on' : ''}
+            onClick={() => setForm({ ...form, sold_by_weight: true, unit: WEIGHT_UNITS.includes(form.unit) ? form.unit : 'kg' })}>Au poids</button>
+        </div>
+        {form.sold_by_weight && <p className="field-hint">Le stock se compte en {form.unit} avec trois décimales (0,750). Le montant d'une vente est arrondi à l'unité.</p>}
+      </div>
       <div className="row">
         <div className="field">
           <label htmlFor="category_id">Catégorie</label>
@@ -106,13 +118,23 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
           </select>
           <p className="field-error">{fields.category_id || ' '}</p>
         </div>
-        <Field label="Unité" name="unit" value={form.unit} onChange={set} error={fields.unit}
-          hint="pièce, kg, litre, carton…" />
+        {form.sold_by_weight ? (
+          <div className="field">
+            <label htmlFor="unit">Unité de pesée</label>
+            <select id="unit" name="unit" value={form.unit} onChange={set}>
+              {WEIGHT_UNITS.map((u) => <option key={u} value={u}>{u === 'kg' ? 'Kilogramme (kg)' : 'Litre (litre)'}</option>)}
+            </select>
+            <p className="field-error">{fields.unit || ' '}</p>
+          </div>
+        ) : (
+          <Field label="Unité" name="unit" value={form.unit} onChange={set} error={fields.unit}
+            hint="pièce, carton, boîte…" />
+        )}
       </div>
       <div className="row">
-        <Field label="Prix d'achat" name="purchase_price" type="number" min="0" step="0.01"
+        <Field label={form.sold_by_weight ? `Prix d'achat au ${form.unit}` : "Prix d'achat"} name="purchase_price" type="number" min="0" step="0.01"
           value={form.purchase_price} onChange={set} error={fields.purchase_price} />
-        <Field label="Prix de vente" name="sale_price" type="number" min="0" step="0.01"
+        <Field label={form.sold_by_weight ? `Prix de vente au ${form.unit}` : 'Prix de vente'} name="sale_price" type="number" min="0" step="0.01"
           value={form.sale_price} onChange={set} error={fields.sale_price} />
         <Field label="TVA (%)" name="tax_rate" type="number" min="0" max="100" step="0.01"
           value={form.tax_rate} onChange={set} error={fields.tax_rate} />
@@ -121,6 +143,10 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         {!isEdit && (
           <Field label="Stock initial" name="initial_stock" type="number" min="0" step="any"
             value={form.initial_stock} onChange={set} error={fields.initial_stock} />
+        )}
+        {form.sold_by_weight && (
+          <Field label={`Poids minimum vendu (${form.unit})`} name="min_sale_quantity" type="number" min="0" step="0.001"
+            value={form.min_sale_quantity} onChange={set} error={fields.min_sale_quantity} hint="0 = pas de minimum" />
         )}
         <Field label="Seuil d'alerte" name="min_stock" type="number" min="0" step="any"
           value={form.min_stock} onChange={set} error={fields.min_stock}

@@ -10,7 +10,7 @@ class Product extends Model
 {
     // stock_quantity n'est volontairement PAS fillable : il ne change que via StockService.
     protected $fillable = [
-        'sku', 'barcode', 'name', 'active_ingredient', 'dosage', 'form', 'track_batches', 'category_id', 'unit', 'purchase_price', 'sale_price',
+        'sku', 'barcode', 'name', 'active_ingredient', 'dosage', 'form', 'track_batches', 'category_id', 'unit', 'sold_by_weight', 'min_sale_quantity', 'purchase_price', 'sale_price',
         'tax_rate', 'min_stock', 'notes', 'is_active',
     ];
 
@@ -24,6 +24,8 @@ class Product extends Model
             'min_stock' => 'decimal:3',
             'is_active' => 'boolean',
             'track_batches' => 'boolean',
+            'sold_by_weight' => 'boolean',
+            'min_sale_quantity' => 'decimal:3',
         ];
     }
 

@@ -21,6 +21,8 @@ class DocumentService
         $out = [];
         $subtotal = 0.0;
         $tax = 0.0;
+        // Produits vendus au poids : montant arrondi à l'unité (pas de centimes) et poids minimum respecté.
+        $weighed = \App\Models\Product::whereIn('id', collect($lines)->pluck('product_id')->filter())->where('sold_by_weight', true)->get()->keyBy('id');
 
         foreach (array_values($lines) as $i => $l) {
             $qty = round((float) $l['quantity'], 3);
@@ -29,6 +31,12 @@ class DocumentService
             $rate = round((float) ($l['tax_rate'] ?? 0), 2);
 
             $net = round($qty * $price * (1 - $discount / 100), 2);
+            if ($p = $weighed->get($l['product_id'] ?? 0)) {
+                if ($qty < (float) $p->min_sale_quantity) {
+                    abort(422, "« {$p->name} » : poids minimum {$p->min_sale_quantity} {$p->unit}.");
+                }
+                $net = (float) round($net);
+            }
             $subtotal += $net;
             $tax += round($net * $rate / 100, 2);
 

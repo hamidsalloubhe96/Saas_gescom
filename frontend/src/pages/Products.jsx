@@ -148,7 +148,7 @@ export default function Products() {
                   <div className="muted small">{isPharmacy ? ([p.active_ingredient, p.dosage, p.form].filter(Boolean).join(' · ') || p.sku) : p.sku}</div>
                 </td>
                 <td>{p.category?.name ?? '—'}</td>
-                <td className="num">{fmtMoney(p.sale_price)}</td>
+                <td className="num">{fmtMoney(p.sale_price)}{p.sold_by_weight ? <span className="muted small"> / {p.unit}</span> : null}</td>
                 <td className="num">
                   <span className={isLow(p) ? 'stock-low' : ''}>{fmtQty(p.stock_quantity)}</span> {p.unit}
                   {isLow(p) && <span className="pill pill-warn" title={`Seuil : ${fmtQty(p.min_stock)}`}>Stock bas</span>}

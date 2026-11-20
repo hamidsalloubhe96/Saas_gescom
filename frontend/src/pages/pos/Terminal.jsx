@@ -6,6 +6,7 @@ import ScanButton from '../../components/ScanButton'
 import { fmtMoney, fmtQty } from '../../lib/format'
 import { computeLine, computeTotals } from '../../lib/sales'
 import PaymentDialog from './PaymentDialog'
+import WeightDialog from './WeightDialog'
 
 export default function Terminal({ onSold }) {
   const navigate = useNavigate()
@@ -18,6 +19,7 @@ export default function Terminal({ onSold }) {
   const [customerId, setCustomerId] = useState('')
   const [notice, setNotice] = useState(null)
   const [paying, setPaying] = useState(false)
+  const [weighing, setWeighing] = useState(null) // produit au poids en cours de pesée
 
   useEffect(() => { searchRef.current?.focus() }, [])
 
@@ -47,14 +49,25 @@ export default function Terminal({ onSold }) {
   }, [notice])
 
   const lines = useMemo(() => cart.map((c) => ({
-    quantity: c.quantity, unit_price: c.product.sale_price, tax_rate: c.product.tax_rate, discount_rate: 0,
+    quantity: c.quantity, unit_price: c.product.sale_price, tax_rate: c.product.tax_rate, discount_rate: 0, by_weight: c.product.sold_by_weight,
   })), [cart])
   const totals = useMemo(() => computeTotals(lines), [lines])
   const validCart = cart.length > 0 && cart.every((c) => Number(c.quantity) > 0)
 
+  /** Produit au poids : la quantité est le poids saisi (il remplace celui déjà dans le panier). */
+  function setWeight(product, weight) {
+    setWeighing(null)
+    const i = cart.findIndex((c) => c.product.id === product.id)
+    setCart(i < 0 ? [...cart, { product, quantity: weight }] : cart.map((c, j) => (j === i ? { ...c, quantity: weight } : c)))
+  }
+
   function add(product, by = 1) {
     const stock = Number(product.stock_quantity)
     if (stock <= 0) return setNotice(`« ${product.name} » est en rupture de stock.`)
+    if (product.sold_by_weight) {
+      // Un code-barres de balance peut déjà porter le poids ; sinon on demande la pesée.
+      return by !== 1 ? setWeight(product, by) : setWeighing(product)
+    }
     const i = cart.findIndex((c) => c.product.id === product.id)
     if (i < 0) {
       if (by > stock) return setNotice(`Stock disponible pour « ${product.name} » : ${fmtQty(stock)}.`)
@@ -123,7 +136,7 @@ export default function Terminal({ onSold }) {
             return (
               <button key={p.id} type="button" className={`tile ${out ? 'tile-out' : ''}`} onClick={() => add(p)}>
                 <span className="tile-name">{p.name}</span>
-                <span className="tile-price">{fmtMoney(p.sale_price)}</span>
+                <span className="tile-price">{fmtMoney(p.sale_price)}{p.sold_by_weight ? ` / ${p.unit}` : ''}</span>
                 <span className="tile-stock">{out ? 'Rupture' : `Stock : ${fmtQty(p.stock_quantity)} ${p.unit}`}</span>
               </button>
             )
@@ -141,14 +154,19 @@ export default function Terminal({ onSold }) {
                 <strong>{c.product.name}</strong>
                 <span className="muted small">{fmtMoney(c.product.sale_price)} / {c.product.unit}</span>
               </div>
-              <div className="cart-qty">
-                <button type="button" aria-label="Diminuer"
-                  onClick={() => setQuantity(c.product.id, String(Math.max(0, Number(c.quantity) - 1)))}>−</button>
-                <input type="number" min="0" step="any" inputMode="decimal" aria-label={`Quantité ${c.product.name}`}
-                  value={c.quantity} onChange={(e) => setQuantity(c.product.id, e.target.value)} />
-                <button type="button" aria-label="Augmenter" onClick={() => add(c.product)}>+</button>
-              </div>
-              <div className="cart-total">{fmtMoney(computeLine({ ...c, unit_price: c.product.sale_price, tax_rate: 0 }).net)}</div>
+              {c.product.sold_by_weight ? (
+                <button type="button" className="btn btn-secondary btn-inline" onClick={() => setWeighing(c.product)}
+                  aria-label={`Modifier le poids de ${c.product.name}`}>{fmtQty(c.quantity)} {c.product.unit}</button>
+              ) : (
+                <div className="cart-qty">
+                  <button type="button" aria-label="Diminuer"
+                    onClick={() => setQuantity(c.product.id, String(Math.max(0, Number(c.quantity) - 1)))}>−</button>
+                  <input type="number" min="0" step="any" inputMode="decimal" aria-label={`Quantité ${c.product.name}`}
+                    value={c.quantity} onChange={(e) => setQuantity(c.product.id, e.target.value)} />
+                  <button type="button" aria-label="Augmenter" onClick={() => add(c.product)}>+</button>
+                </div>
+              )}
+              <div className="cart-total">{fmtMoney(computeLine({ ...c, unit_price: c.product.sale_price, tax_rate: 0, by_weight: c.product.sold_by_weight }).net)}</div>
               <button type="button" className="link-btn danger" aria-label={`Retirer ${c.product.name}`}
                 onClick={() => setCart(cart.filter((x) => x.product.id !== c.product.id))}>✕</button>
             </div>
@@ -177,6 +195,13 @@ export default function Terminal({ onSold }) {
           </button>
         </div>
       </aside>
+
+      <Modal open={Boolean(weighing)} onClose={() => setWeighing(null)} title="Pesée">
+        {weighing && (
+          <WeightDialog product={weighing} initial={cart.find((c) => c.product.id === weighing.id)?.quantity}
+            onConfirm={(w) => setWeight(weighing, w)} onCancel={() => setWeighing(null)} />
+        )}
+      </Modal>
 
       <Modal open={paying} onClose={() => setPaying(false)} title="Encaissement">
         <PaymentDialog total={totals.total} walkIn={!customerId} onCancel={() => setPaying(false)} onConfirm={confirmSale} />

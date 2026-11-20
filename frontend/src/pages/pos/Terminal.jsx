@@ -61,6 +61,17 @@ export default function Terminal({ onSold }) {
     setCart(i < 0 ? [...cart, { product, quantity: weight }] : cart.map((c, j) => (j === i ? { ...c, quantity: weight } : c)))
   }
 
+  /** Ajoute un produit pesé dont le poids vient d'une étiquette de balance (s'ajoute au poids déjà dans le panier). */
+  function addWeighed(product) {
+    const weight = Number(product.scan_quantity)
+    const stock = Number(product.stock_quantity)
+    const already = Number(cart.find((c) => c.product.id === product.id)?.quantity ?? 0)
+    if (stock <= 0) return `« ${product.name} » est en rupture de stock.`
+    if (already + weight > stock) return `Stock disponible pour « ${product.name} » : ${fmtQty(stock)} ${product.unit}.`
+    setWeight(product, Math.round((already + weight) * 1000) / 1000)
+    return `${product.name} : ${fmtQty(weight)} ${product.unit} (balance)`
+  }
+
   function add(product, by = 1) {
     const stock = Number(product.stock_quantity)
     if (stock <= 0) return setNotice(`« ${product.name} » est en rupture de stock.`)
@@ -92,6 +103,8 @@ export default function Terminal({ onSold }) {
   async function scanCode(code) {
     try {
       const { data } = await api.get(`/products/barcode/${encodeURIComponent(code)}`)
+      // Étiquette de balance : le poids est dans le code, pas de pesée à refaire.
+      if (data.scan_label === 'Balance') return addWeighed(data)
       add(data, data.scan_quantity ?? 1)
       return `${data.name} ajouté${data.scan_quantity > 1 ? ` (× ${fmtQty(data.scan_quantity)})` : ''}`
     } catch (err) {
@@ -107,7 +120,11 @@ export default function Terminal({ onSold }) {
     // Lecteur de code-barres : correspondance exacte code-barres / référence, sinon résultat unique.
     const exact = products.find((p) => [p.barcode, p.sku].some((v) => v && v.toLowerCase() === term))
     const target = exact ?? (products.length === 1 ? products[0] : null)
-    if (target) { add(target); setQ('') } else setNotice('Aucun produit unique ne correspond : précisez la recherche.')
+    if (target) { add(target); setQ('') } else if (/^2[12]\d{11}$/.test(term)) {
+      // Étiquette de balance tapée par un lecteur de code-barres.
+      scanCode(term).then(setNotice)
+      setQ('')
+    } else setNotice('Aucun produit unique ne correspond : précisez la recherche.')
   }
 
   async function confirmSale(payments) {

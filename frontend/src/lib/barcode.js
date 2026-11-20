@@ -15,6 +15,12 @@ export function isValidEan(code) {
   return checkDigit(code.slice(0, -1)) === Number(code.slice(-1))
 }
 
+/** Code-barres de balance (EAN-13 « 2 1 PPPPP VVVVV C ») : produit (PLU) et poids en grammes. Même format que le serveur. */
+export function scaleCode(plu, grams) {
+  const body = `21${String(plu).padStart(5, '0')}${String(Math.min(Math.round(grams), 99999)).padStart(5, '0')}`
+  return body + checkDigit(body)
+}
+
 /** Format à dessiner pour un code : EAN/UPC si la clé est bonne, sinon Code 128 (accepte tout texte). */
 export function barcodeFormat(code) {
   if (isValidEan(code)) return code.length === 13 ? 'EAN13' : code.length === 12 ? 'UPC' : 'EAN8'

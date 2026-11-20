@@ -26,6 +26,7 @@ class ProductController extends Controller
             'barcode' => ['nullable', 'string', 'max:60', Rule::unique('products', 'barcode')->ignore($ignoreId), Rule::unique('product_barcodes', 'barcode')],
             'category_id' => ['nullable', 'integer', 'exists:categories,id'],
             'unit' => ['nullable', 'string', 'max:20'],
+            'plu' => ['nullable', 'regex:/^\d{1,5}$/', Rule::unique('products', 'plu')->ignore($ignoreId)],
             'sold_by_weight' => ['sometimes', 'boolean'],
             'min_sale_quantity' => ['nullable', 'numeric', 'min:0', 'max:999999'],
             'purchase_price' => ['nullable', 'numeric', 'min:0', 'max:999999999999'],
@@ -44,6 +45,10 @@ class ProductController extends Controller
             if (array_key_exists($field, $data) && $data[$field] === null) {
                 $data[$field] = 0;
             }
+        }
+        if (array_key_exists('plu', $data)) {
+            // Sans zéros de tête : « 012 » et « 12 » sont le même code court.
+            $data['plu'] = filled($data['plu']) ? (string) ((int) $data['plu']) : null;
         }
         if (array_key_exists('unit', $data) && $data['unit'] === null) {
             $data['unit'] = 'pièce';

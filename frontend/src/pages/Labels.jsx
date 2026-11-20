@@ -5,9 +5,9 @@ import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import ScanButton from '../components/ScanButton'
 import { BackIcon, DeleteIcon, GenerateIcon, IconButton, PrintIcon, SearchIcon } from '../components/ui'
-import { barcodeFormat } from '../lib/barcode'
+import { barcodeFormat, scaleCode } from '../lib/barcode'
 import { cn } from '../lib/cn'
-import { fmtMoney } from '../lib/format'
+import { fmtMoney, fmtMoney0, fmtQty } from '../lib/format'
 
 // Formats d'impression : taille de la page, de l'étiquette (mm) et disposition.
 const FORMATS = {
@@ -40,6 +40,7 @@ export default function Labels() {
   const [format, setFormat] = useState('a4')
   const [showName, setShowName] = useState(true)
   const [showPrice, setShowPrice] = useState(true)
+  const [mode, setMode] = useState('shelf') // shelf : étiquette de rayon ; packet : colis pesé avec code de balance
   const [error, setError] = useState(null)
   const f = FORMATS[format]
 
@@ -51,7 +52,7 @@ export default function Labels() {
     return () => clearTimeout(t)
   }, [q])
 
-  const add = (product, code) => setRows((cur) => (cur.some((r) => r.product.id === product.id) ? cur : [...cur, { product, copies: 1, code: code || product.barcode || product.sku }]))
+  const add = (product, code) => setRows((cur) => (cur.some((r) => r.product.id === product.id) ? cur : [...cur, { product, copies: 1, weight: '', code: code || product.barcode || product.sku }]))
 
   async function scanCode(code) {
     try {
@@ -69,7 +70,18 @@ export default function Labels() {
     } catch (err) { setError(parseError(err).message) }
   }
 
-  const labels = rows.flatMap((r) => Array.from({ length: Math.max(0, Math.min(Number(r.copies) || 0, 500)) }, (_, i) => ({ product: r.product, code: r.code, key: `${r.product.id}-${i}` })))
+  const packet = mode === 'packet'
+  const today = new Date().toLocaleDateString('fr-FR')
+  // Colis pesé : il faut un code court (PLU) et un poids ; le code-barres embarque les deux.
+  const usable = (r) => !packet || (r.product.plu && Number(r.weight) > 0)
+  const labels = rows.filter(usable).flatMap((r) => Array.from({ length: Math.max(0, Math.min(Number(r.copies) || 0, 500)) }, (_, i) => ({
+    product: r.product,
+    code: packet ? scaleCode(r.product.plu, Number(r.weight) * 1000) : r.code,
+    weight: Number(r.weight),
+    key: `${r.product.id}-${i}`,
+  })))
+  const skipped = packet ? rows.filter((r) => !usable(r)).length : 0
+  const unitPrice = (p) => `${fmtMoney0(p.sale_price)}${p.sold_by_weight ? ` / ${p.unit}` : ''}`
 
   return (
     <>
@@ -109,13 +121,13 @@ export default function Labels() {
 
           <div className="table-wrap flat">
             <table>
-              <thead><tr><th>Produit</th><th>Code</th><th className="num" style={{ width: 130 }}>Étiquettes</th><th className="actions">Actions</th></tr></thead>
+              <thead><tr><th>Produit</th><th>{packet ? 'Code produit (PLU)' : 'Code'}</th>{packet && <th className="num" style={{ width: 120 }}>Poids (kg)</th>}<th className="num" style={{ width: 130 }}>Étiquettes</th><th className="actions">Actions</th></tr></thead>
               <tbody>
                 {rows.map((r) => (
                   <tr key={r.product.id}>
                     <td>{r.product.name}</td>
                     <td>
-                      {r.product.barcode || r.product.barcodes?.length
+                      {packet ? (r.product.plu ? <strong>{r.product.plu}</strong> : <span className="text-sm text-danger">Pas de code court : renseignez-le sur la fiche du produit</span>) : r.product.barcode || r.product.barcodes?.length
                         ? (
                           <select aria-label={`Code à imprimer pour ${r.product.name}`} value={r.code}
                             onChange={(e) => setRows(rows.map((x) => (x.product.id === r.product.id ? { ...x, code: e.target.value } : x)))}
@@ -133,6 +145,13 @@ export default function Labels() {
                           </span>
                         )}
                     </td>
+                    {packet && (
+                      <td className="num">
+                        <input type="number" min="0" step="0.001" aria-label={`Poids du colis ${r.product.name}`} value={r.weight}
+                          onChange={(e) => setRows(rows.map((x) => (x.product.id === r.product.id ? { ...x, weight: e.target.value } : x)))}
+                          className="w-24 rounded-lg border border-line bg-surface px-2.5 py-1.5 text-right" />
+                      </td>
+                    )}
                     <td className="num">
                       <input type="number" min="1" max="500" aria-label={`Nombre d’étiquettes pour ${r.product.name}`} value={r.copies}
                         onChange={(e) => setRows(rows.map((x) => (x.product.id === r.product.id ? { ...x, copies: e.target.value } : x)))}
@@ -141,7 +160,7 @@ export default function Labels() {
                     <td className="actions"><IconButton icon={DeleteIcon} tone="danger" label={`Retirer ${r.product.name}`} onClick={() => setRows(rows.filter((x) => x.product.id !== r.product.id))} /></td>
                   </tr>
                 ))}
-                {rows.length === 0 && <tr><td colSpan="4" className="empty">Aucun produit. Cherchez-en un ou scannez son code.</td></tr>}
+                {rows.length === 0 && <tr><td colSpan={packet ? 5 : 4} className="empty">Aucun produit. Cherchez-en un ou scannez son code.</td></tr>}
               </tbody>
             </table>
           </div>
@@ -150,13 +169,21 @@ export default function Labels() {
         <aside className="panel !mb-0 h-fit">
           <h2>Format</h2>
           <div className="field">
+            <label htmlFor="mode">Type d’étiquette</label>
+            <select id="mode" value={mode} onChange={(e) => setMode(e.target.value)}>
+              <option value="shelf">Rayon (prix, code produit)</option>
+              <option value="packet">Colis pesé (poids, prix, code de balance)</option>
+            </select>
+          </div>
+          <div className="field">
             <label htmlFor="format">Support d’impression</label>
             <select id="format" value={format} onChange={(e) => setFormat(e.target.value)}>
               {Object.entries(FORMATS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
             </select>
           </div>
           <label className="check"><input type="checkbox" checked={showName} onChange={(e) => setShowName(e.target.checked)} /> Afficher le nom</label>
-          <label className="check"><input type="checkbox" checked={showPrice} onChange={(e) => setShowPrice(e.target.checked)} /> Afficher le prix</label>
+          {!packet && <label className="check"><input type="checkbox" checked={showPrice} onChange={(e) => setShowPrice(e.target.checked)} /> Afficher le prix</label>}
+          {skipped > 0 && <p className="small text-danger">{skipped} produit{skipped > 1 ? 's' : ''} sans code court ou sans poids : pas d’étiquette.</p>}
           <p className="small text-muted">Une étiquette sans code-barres utilise la référence du produit. Pour un code lisible en caisse, générez un code interne.</p>
         </aside>
       </div>
@@ -166,12 +193,15 @@ export default function Labels() {
           <h2 className="no-print mb-3">Aperçu</h2>
           <div className={cn('grid gap-[1mm]', f.grid ? 'justify-start' : 'justify-center')}
             style={f.grid ? { gridTemplateColumns: `repeat(3, ${f.w}mm)`, gap: '1mm 2mm' } : { gridTemplateColumns: `${f.w}mm` }}>
-            {labels.map(({ product, code, key }) => (
+            {labels.map(({ product, code, weight, key }) => (
               <div key={key} className="flex flex-col items-center justify-center overflow-hidden rounded-sm border border-dashed border-line bg-white p-[1.5mm] text-center text-black print:border-0"
                 style={{ width: `${f.w}mm`, height: `${f.h}mm`, breakInside: 'avoid', breakAfter: f.grid ? 'auto' : 'page' }}>
                 {showName && <div className="w-full truncate text-[3.2mm] font-semibold leading-tight">{product.name}</div>}
+                {packet && <div className="w-full truncate text-[2.8mm] leading-tight">{fmtQty(weight)} {product.unit} × {unitPrice(product)}</div>}
                 <Bars code={code} />
-                {showPrice && <div className="text-[3.6mm] font-bold leading-tight">{fmtMoney(product.sale_price)}</div>}
+                {packet
+                  ? <div className="text-[3.6mm] font-bold leading-tight">{fmtMoney0(Math.round(weight * Number(product.sale_price)))} <span className="text-[2.4mm] font-normal">emballé le {today}</span></div>
+                  : showPrice && <div className="text-[3.6mm] font-bold leading-tight">{product.sold_by_weight ? unitPrice(product) : fmtMoney(product.sale_price)}</div>}
               </div>
             ))}
           </div>

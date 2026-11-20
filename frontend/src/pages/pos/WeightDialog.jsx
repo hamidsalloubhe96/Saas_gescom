@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fmtMoney0, fmtQty } from '../../lib/format'
+import { connectScale, scaleSupported } from '../../lib/scale'
 
 const QUICK = [0.25, 0.5, 1, 2]
 
@@ -7,6 +8,25 @@ const QUICK = [0.25, 0.5, 1, 2]
 export default function WeightDialog({ product, initial, onConfirm, onCancel }) {
   const [value, setValue] = useState(initial ? String(initial) : '')
   const [error, setError] = useState(null)
+  const [scaleOn, setScaleOn] = useState(false)
+  const stopScale = useRef(null)
+
+  // La liaison avec la balance se referme avec la fenêtre.
+  useEffect(() => () => { stopScale.current?.() }, [])
+
+  async function toggleScale() {
+    if (stopScale.current) {
+      await stopScale.current()
+      stopScale.current = null
+      return setScaleOn(false)
+    }
+    try {
+      stopScale.current = await connectScale((w) => { setValue(String(w)); setError(null) })
+      setScaleOn(true)
+    } catch (err) {
+      if (err?.name !== 'NotFoundError') setError('Impossible de lire la balance. Vérifiez le câble et le port choisi.')
+    }
+  }
   const stock = Number(product.stock_quantity)
   const min = Number(product.min_sale_quantity) || 0
   const weight = Number(value.replace(',', '.')) || 0
@@ -32,6 +52,11 @@ export default function WeightDialog({ product, initial, onConfirm, onCancel }) 
           value={value} onChange={(e) => { setValue(e.target.value); setError(null) }} />
       </div>
       <div className="mb-4 flex flex-wrap gap-2">
+        {scaleSupported() && (
+          <button type="button" className={`btn btn-inline ${scaleOn ? '' : 'btn-secondary'}`} onClick={toggleScale} aria-pressed={scaleOn}>
+            {scaleOn ? 'Balance connectée : arrêter' : 'Lire la balance'}
+          </button>
+        )}
         {QUICK.map((q) => (
           <button key={q} type="button" className="btn btn-secondary btn-inline" onClick={() => { setValue(String(q)); setError(null) }}>
             {q < 1 ? `${q * 1000} g` : `${q} ${product.unit}`}

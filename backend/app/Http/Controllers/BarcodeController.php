@@ -32,6 +32,19 @@ class BarcodeController extends Controller
             $label = $extra->label;
         }
 
+        // Étiquette de balance (poids ou prix dans le code) : le produit est retrouvé par son code court (PLU).
+        if (! $product && ($scale = \App\Services\ScaleBarcode::parse($code))) {
+            $product = $base()->where('plu', ltrim($scale['plu'], '0') === '' ? '0' : ltrim($scale['plu'], '0'))->first();
+            if ($product) {
+                $price = (float) ($product->branch_price ?? $product->sale_price);
+                $quantity = \App\Services\ScaleBarcode::weightKg($scale, $price);
+                $label = 'Balance';
+                if ($quantity <= 0) {
+                    return response()->json(['message' => 'Étiquette de balance illisible : poids nul.', 'code' => 'scale_invalid'], 422);
+                }
+            }
+        }
+
         if (! $product) {
             return response()->json(['message' => 'Code inconnu.', 'code' => 'barcode_unknown'], 404);
         }

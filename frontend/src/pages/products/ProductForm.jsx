@@ -13,7 +13,7 @@ const WEIGHT_UNITS = ['kg', 'litre']
 const EMPTY = {
   name: '', sku: '', barcode: '', category_id: '', unit: 'pièce', purchase_price: '', sale_price: '',
   tax_rate: '', min_stock: '', initial_stock: '', notes: '', is_active: true,
-  sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
+  plu: '', sold_by_weight: false, min_sale_quantity: '', active_ingredient: '', dosage: '', form: '', track_batches: false, batch_number: '', expires_at: '',
 }
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
@@ -143,6 +143,10 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         {!isEdit && (
           <Field label="Stock initial" name="initial_stock" type="number" min="0" step="any"
             value={form.initial_stock} onChange={set} error={fields.initial_stock} />
+        )}
+        {form.sold_by_weight && (
+          <Field label="Code court (PLU)" name="plu" value={form.plu ?? ''} onChange={set} error={fields.plu} inputMode="numeric" maxLength={5}
+            hint="1 à 5 chiffres : le numéro que votre balance imprime dans l'étiquette" />
         )}
         {form.sold_by_weight && (
           <Field label={`Poids minimum vendu (${form.unit})`} name="min_sale_quantity" type="number" min="0" step="0.001"

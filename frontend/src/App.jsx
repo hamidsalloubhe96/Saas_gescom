@@ -24,6 +24,7 @@ import Login from './pages/Login'
 import Pos from './pages/pos/Pos'
 import Ticket from './pages/pos/Ticket'
 import Expiry from './pages/Expiry'
+import ImportProducts from './pages/products/ImportProducts'
 import Products from './pages/Products'
 import PurchaseEditor from './pages/purchases/PurchaseEditor'
 import PurchaseList from './pages/purchases/PurchaseList'
@@ -115,6 +116,7 @@ export default function App() {
             <Route path="points-de-vente" element={guard('branches.manage', <Branches />)} />
             <Route path="transferts" element={guard('transfers.receive', <Transfers />)} />
             <Route path="transferts/:id" element={guard('transfers.receive', <Transfers />)} />
+            <Route path="produits/import" element={guard('products.manage', <ImportProducts />)} />
             <Route path="produits/etiquettes" element={guard('products.view', <Labels />)} />
             <Route path="compte" element={<Account />} />
             <Route path="inventaire" element={guard('stock.move', <Inventory />)} />

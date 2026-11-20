@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import { AddIcon, BarcodeIcon, BranchesIcon, HistoryIcon, IconButton, MovementIcon, RowActions } from '../components/ui'
+import { AddIcon, UploadIcon, BarcodeIcon, BranchesIcon, HistoryIcon, IconButton, MovementIcon, RowActions } from '../components/ui'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Modal from '../components/Modal'
@@ -110,6 +110,7 @@ export default function Products() {
         </div>
         <div className="head-actions">
           <Link to="/produits/etiquettes" className="btn btn-secondary btn-inline btn-link"><BarcodeIcon className="size-4" aria-hidden="true" /> Étiquettes</Link>
+          {canManage && !platform.branch && <Link to="/produits/import" className="btn btn-secondary btn-inline btn-link"><UploadIcon className="size-4" aria-hidden="true" /> Importer</Link>}
           {canManage && <button className="btn btn-secondary btn-inline" onClick={() => setModal({ kind: 'categories' })}>Catégories</button>}
           {canManage && <button className="btn btn-inline" onClick={() => setModal({ kind: 'form' })}><AddIcon className="size-4" aria-hidden="true" /> {w.newProduct}</button>}
         </div>

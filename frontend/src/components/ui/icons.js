@@ -13,6 +13,7 @@ export {
   Search as SearchIcon,
   Printer as PrintIcon,
   Download as DownloadIcon,
+  Upload as UploadIcon,
   Copy as CopyIcon,
   Send as SendIcon,
   Undo2 as UndoIcon,

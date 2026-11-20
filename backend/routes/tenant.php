@@ -105,6 +105,12 @@ Route::prefix('api')
             // --- Catégories et stock ---
             Route::get('products/barcode/{code}', [\App\Http\Controllers\BarcodeController::class, 'lookup'])->middleware('permission:products.view')->where('code', '[^/]+');
             Route::post('products/barcode/generate', [\App\Http\Controllers\BarcodeController::class, 'generate'])->middleware(['permission:products.manage', 'hq']);
+            Route::middleware(['permission:products.manage', 'hq'])->prefix('products/import')->group(function () {
+                Route::get('template', [\App\Http\Controllers\ProductImportController::class, 'template']);
+                Route::post('preview', [\App\Http\Controllers\ProductImportController::class, 'preview'])->middleware('throttle:20,1');
+                Route::post('/', [\App\Http\Controllers\ProductImportController::class, 'import'])->middleware('throttle:10,1');
+                Route::post('errors', [\App\Http\Controllers\ProductImportController::class, 'errors']);
+            });
             Route::middleware(['permission:products.manage', 'hq'])->group(function () {
                 Route::post('products/{id}/barcodes', [\App\Http\Controllers\BarcodeController::class, 'addExtra']);
                 Route::delete('products/{id}/barcodes/{barcodeId}', [\App\Http\Controllers\BarcodeController::class, 'removeExtra'])->whereNumber('barcodeId');

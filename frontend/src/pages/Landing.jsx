@@ -66,7 +66,7 @@ const FAQ = [
 ]
 
 // Boutons de la vitrine (mêmes variantes que l'application, en plus grand).
-const btn = 'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-semibold no-underline transition-colors duration-150 motion-safe:active:scale-[0.985]'
+const btn = 'inline-flex min-h-11 whitespace-nowrap items-center justify-center gap-2 rounded-lg border px-5 text-sm font-semibold no-underline transition-colors duration-150 motion-safe:active:scale-[0.985]'
 const btnSolid = cn(btn, 'border-transparent bg-brand-600 text-white hover:bg-brand-700')
 const btnOutline = cn(btn, 'border-brand-600 bg-transparent text-brand-700 hover:bg-brand-50')
 const btnWhite = cn(btn, 'min-h-12 border-transparent bg-white px-6 text-brand-800 hover:bg-brand-50')
@@ -208,15 +208,15 @@ export default function Landing() {
     <div className="bg-surface">
       <header className={cn('sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur transition-shadow duration-200', scrolled && 'shadow-md')}>
         <div className="mx-auto flex w-full max-w-6xl items-center gap-5 px-5 py-3">
-          <a href="#accueil" onClick={go('accueil')} className="no-underline"><Brand /></a>
-          <nav aria-label="Sections" className="mx-auto hidden gap-6 lg:flex">
+          <a href="#accueil" onClick={go('accueil')} className="shrink-0 whitespace-nowrap no-underline"><Brand /></a>
+          <nav aria-label="Sections" className="mx-auto hidden gap-4 whitespace-nowrap xl:gap-6 lg:flex">
             {NAV.map(([id, label]) => (
-              <a key={id} href={`#${id}`} onClick={go(id)} className="text-[.95rem] text-ink no-underline transition-colors hover:text-accent">{label}</a>
+              <a key={id} href={`#${id}`} onClick={go(id)} className="whitespace-nowrap text-sm text-ink no-underline transition-colors hover:text-accent xl:text-[.95rem]">{label}</a>
             ))}
           </nav>
-          <div className="ml-auto flex gap-2.5 lg:ml-0">
+          <div className="ml-auto flex shrink-0 gap-2.5 lg:ml-0">
             <button type="button" onClick={() => setFinding(true)} className={cn(btnOutline, 'px-3 sm:px-5')}>
-              <SearchIcon className="size-[18px]" aria-hidden="true" /> <span className="hidden sm:inline">Rechercher mon entreprise</span><span className="sr-only sm:hidden">Rechercher mon entreprise</span>
+              <SearchIcon className="size-[18px]" aria-hidden="true" /> <span className="hidden whitespace-nowrap sm:inline xl:hidden">Mon entreprise</span><span className="hidden whitespace-nowrap xl:inline">Rechercher mon entreprise</span><span className="sr-only sm:hidden">Rechercher mon entreprise</span>
             </button>
             <Link to="/login" className={cn(btnSolid, 'px-3 sm:px-5')}>
               <AccountIcon className="size-[18px]" aria-hidden="true" /> <span className="sr-only sm:not-sr-only">Connexion</span>

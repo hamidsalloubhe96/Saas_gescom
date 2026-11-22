@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { AddIcon } from '../../components/ui'
+import ListCards, { ListCard } from '../../components/ListCards'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
 import StatusPill from '../../components/StatusPill'
@@ -88,7 +89,19 @@ export default function SalesList() {
 
       {error && <div role="alert" className="alert">{error}</div>}
 
-      <div className="table-wrap" aria-busy={loading}>
+      <ListCards loading={loading} isEmpty={rows.length === 0}
+        empty={query || status ? 'Aucun résultat pour ces critères.' : `Aucun ${TYPE_LABEL[type].toLowerCase()} pour le moment.`}>
+        {rows.map((d) => (
+          <ListCard key={d.id} to={`/ventes/${d.id}`} title={d.number ?? 'Sans numéro'} badge={<StatusPill doc={d} />} sub={d.customer?.name}
+            details={[
+              [isInvoice ? 'Échéance' : 'Validité', fmtDay(d.due_date)],
+              ['Total TTC', fmtMoney(d.total)],
+              ...(isInvoice && !['draft', 'cancelled'].includes(d.status) ? [['Reste dû', fmtMoney(d.balance), Number(d.balance) > 0 ? 'bad' : undefined]] : []),
+            ]} />
+        ))}
+      </ListCards>
+
+      <div className="table-wrap max-lg:hidden" aria-busy={loading}>
         <table>
           <thead>
             <tr>

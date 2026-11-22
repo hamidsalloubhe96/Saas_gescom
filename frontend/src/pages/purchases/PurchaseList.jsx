@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { AddIcon } from '../../components/ui'
+import ListCards, { ListCard } from '../../components/ListCards'
 import api, { parseError } from '../../api'
 import { useAuth } from '../../auth'
 import PurchasePill from '../../components/PurchasePill'
@@ -65,7 +66,22 @@ export default function PurchaseList() {
 
       {error && <div role="alert" className="alert">{error}</div>}
 
-      <div className="table-wrap" aria-busy={loading}>
+      <ListCards loading={loading} isEmpty={rows.length === 0}
+        empty={query || status ? 'Aucun résultat pour ces critères.' : 'Aucune commande pour le moment.'}>
+        {rows.map((p) => {
+          const pay = paymentState(p)
+          return (
+            <ListCard key={p.id} to={`/achats/${p.id}`} title={p.number} badge={<PurchasePill po={p} />} sub={p.supplier?.name}
+              details={[
+                ['Livraison prévue', fmtDay(p.expected_date)],
+                ['Total TTC', fmtMoney(p.total)],
+                ...(pay ? [['Reste à payer', fmtMoney(p.balance)], ['Règlement', pay[0]]] : []),
+              ]} />
+          )
+        })}
+      </ListCards>
+
+      <div className="table-wrap max-lg:hidden" aria-busy={loading}>
         <table>
           <thead>
             <tr>

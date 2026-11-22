@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AddIcon, RowActions } from '../components/ui'
+import ListCards, { ListCard } from '../components/ListCards'
 import api, { parseError } from '../api'
 import { useAuth } from '../auth'
 import Field from '../components/Field'
@@ -132,7 +133,17 @@ export default function Partners({ resource, title, singular, extra }) {
 
       {loadError && <div role="alert" className="alert">{loadError}</div>}
 
-      <div className="table-wrap" aria-busy={loading}>
+      <ListCards loading={loading} isEmpty={rows.length === 0}
+        empty={query || status ? 'Aucun résultat pour ces critères.' : `Aucun ${singular} pour le moment.`}>
+        {rows.map((r) => (
+          <ListCard key={r.id} title={r.name} badge={<span className={`pill ${r.is_active ? 'pill-on' : 'pill-off'}`}>{r.is_active ? 'Actif' : 'Inactif'}</span>}
+            sub={[r.city, r.phone, r.email].filter(Boolean).join(' · ')}
+            details={[[extra.label, extra.format(r[extra.name])]]}
+            actions={canManage ? [{ label: 'Modifier', onClick: () => openForm(r) }, { label: 'Supprimer', danger: true, onClick: () => remove(r) }] : []} />
+        ))}
+      </ListCards>
+
+      <div className="table-wrap max-lg:hidden" aria-busy={loading}>
         <table>
           <thead>
             <tr>

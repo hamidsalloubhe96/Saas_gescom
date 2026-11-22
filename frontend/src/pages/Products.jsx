@@ -6,6 +6,7 @@ import { useAuth } from '../auth'
 import Modal from '../components/Modal'
 import ScanButton from '../components/ScanButton'
 import { useBusiness } from '../lib/business'
+import ListCards, { ListCard } from '../components/ListCards'
 import { fmtMoney, fmtQty } from '../lib/format'
 import Categories from './products/Categories'
 import History from './products/History'
@@ -133,7 +134,26 @@ export default function Products() {
 
       {error && <div role="alert" className="alert">{error}</div>}
 
-      <div className="table-wrap" aria-busy={loading}>
+      <ListCards loading={loading} isEmpty={rows.length === 0}
+        empty={query || categoryId || lowOnly ? 'Aucun résultat pour ces critères.' : 'Aucun produit pour le moment.'}>
+        {rows.map((p) => (
+          <ListCard key={p.id} title={p.name} badge={<span className={`pill ${p.is_active ? 'pill-on' : 'pill-off'}`}>{p.is_active ? 'Actif' : 'Inactif'}</span>}
+            sub={[p.category?.name, isPharmacy ? ([p.active_ingredient, p.dosage, p.form].filter(Boolean).join(' · ') || p.sku) : p.sku].filter(Boolean).join(' · ')}
+            details={[
+              ['Prix de vente', `${fmtMoney(p.sale_price)}${p.sold_by_weight ? ` / ${p.unit}` : ''}`],
+              ['Stock', `${fmtQty(p.stock_quantity)} ${p.unit}${isLow(p) ? ' · stock bas' : ''}`, isLow(p) ? 'bad' : undefined],
+            ]}
+            actions={[
+              ...(canManage ? [{ label: 'Modifier', onClick: () => setModal({ kind: 'form', product: p }) }] : []),
+              ...(canMove ? [{ label: 'Mouvement', onClick: () => setModal({ kind: 'movement', product: p }) }] : []),
+              { label: 'Historique', onClick: () => setModal({ kind: 'history', product: p }) },
+              ...(can('branches.manage') && !platform.branch ? [{ label: 'Points de vente', onClick: () => setModal({ kind: 'branches', product: p }) }] : []),
+              ...(canManage ? [{ label: 'Supprimer', danger: true, onClick: () => remove(p) }] : []),
+            ]} />
+        ))}
+      </ListCards>
+
+      <div className="table-wrap max-lg:hidden" aria-busy={loading}>
         <table>
           <thead>
             <tr>

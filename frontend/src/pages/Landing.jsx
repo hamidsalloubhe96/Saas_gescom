@@ -208,7 +208,7 @@ export default function Landing() {
     <div className="bg-surface">
       <header className={cn('sticky top-0 z-30 border-b border-line bg-surface/95 backdrop-blur transition-shadow duration-200', scrolled && 'shadow-md')}>
         <div className="mx-auto flex w-full max-w-6xl items-center gap-5 px-5 py-3">
-          <a href="#accueil" onClick={go('accueil')} className="shrink-0 whitespace-nowrap no-underline"><Brand /></a>
+          <a href="#accueil" onClick={go('accueil')} className="min-w-0 no-underline lg:shrink-0 lg:whitespace-nowrap"><Brand /></a>
           <nav aria-label="Sections" className="mx-auto hidden gap-4 whitespace-nowrap xl:gap-6 lg:flex">
             {NAV.map(([id, label]) => (
               <a key={id} href={`#${id}`} onClick={go(id)} className="whitespace-nowrap text-sm text-ink no-underline transition-colors hover:text-accent xl:text-[.95rem]">{label}</a>

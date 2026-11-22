@@ -20,6 +20,7 @@ export default function Terminal({ onSold }) {
   const [notice, setNotice] = useState(null)
   const [paying, setPaying] = useState(false)
   const [weighing, setWeighing] = useState(null) // produit au poids en cours de pesée
+  const [cartOpen, setCartOpen] = useState(false) // téléphone : le panier s'ouvre en feuille au-dessus de la grille
 
   useEffect(() => { searchRef.current?.focus() }, [])
 
@@ -62,6 +63,17 @@ export default function Terminal({ onSold }) {
   })), [cart]) // eslint-disable-line react-hooks/exhaustive-deps
   const totals = useMemo(() => computeTotals(lines), [lines])
   const validCart = cart.length > 0 && cart.every((c) => Number(c.quantity) > 0)
+
+  // Un panier vide referme la feuille ; Échap aussi, et la page derrière ne défile pas tant qu'elle est ouverte.
+  useEffect(() => { if (cart.length === 0) setCartOpen(false) }, [cart.length])
+  useEffect(() => {
+    if (!cartOpen) return undefined
+    const onKey = (e) => e.key === 'Escape' && setCartOpen(false)
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    window.addEventListener('keydown', onKey)
+    return () => { document.body.style.overflow = prev; window.removeEventListener('keydown', onKey) }
+  }, [cartOpen])
 
   /** Produit au poids : la quantité est le poids saisi (il remplace celui déjà dans le panier). */
   function setWeight(product, weight) {
@@ -165,7 +177,7 @@ export default function Terminal({ onSold }) {
   }
 
   return (
-    <div className="pos">
+    <div className={`pos ${cart.length > 0 ? 'max-lg:pb-24' : ''}`}>
       <section className="pos-catalog">
         <div className="mb-3 flex gap-2">
           <input ref={searchRef} type="search" className="pos-search !mb-0 flex-1" placeholder="Rechercher ou scanner un code-barres…"
@@ -188,8 +200,13 @@ export default function Terminal({ onSold }) {
         </div>
       </section>
 
-      <aside className="pos-cart" aria-label="Panier">
-        <h2>Panier</h2>
+      {cartOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setCartOpen(false)} aria-hidden="true" />}
+      <aside className={`pos-cart ${cartOpen ? 'max-lg:fixed max-lg:inset-x-0 max-lg:bottom-0 max-lg:max-h-[85vh] max-lg:z-40 max-lg:overflow-y-auto max-lg:rounded-b-none max-lg:shadow-2xl' : 'max-lg:hidden'}`}
+        aria-label="Panier" role={cartOpen ? 'dialog' : undefined} aria-modal={cartOpen ? 'true' : undefined}>
+        <div className="flex items-center justify-between">
+          <h2>Panier</h2>
+          <button type="button" className="link-btn lg:hidden" onClick={() => setCartOpen(false)}>Fermer</button>
+        </div>
         <div className="cart-lines">
           {cart.map((c) => (
             <div className="cart-line" key={lineKey(c)}>
@@ -248,6 +265,17 @@ export default function Terminal({ onSold }) {
           </button>
         </div>
       </aside>
+
+      {cart.length > 0 && !cartOpen && (
+        <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-surface px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,.08)] lg:hidden">
+          <div className="min-w-0 flex-1 leading-tight">
+            <strong className="block text-sm">{cart.length} {cart.length > 1 ? 'articles' : 'article'}</strong>
+            <span className="text-xs text-muted">Total {fmtMoney(totals.total)}</span>
+          </div>
+          <button type="button" className="btn btn-secondary btn-inline min-h-11 shrink-0" onClick={() => setCartOpen(true)}>Panier</button>
+          <button type="button" className="btn btn-pay btn-inline min-h-11 shrink-0" disabled={!validCart} onClick={() => setPaying(true)}>Encaisser</button>
+        </div>
+      )}
 
       <Modal open={Boolean(weighing)} onClose={() => setWeighing(null)} title="Pesée">
         {weighing && (

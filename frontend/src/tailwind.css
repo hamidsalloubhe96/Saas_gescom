@@ -268,7 +268,7 @@
   @keyframes gc-fade-up { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
   @keyframes gc-fade { from { opacity: 0; } to { opacity: 1; } }
   @keyframes gc-pop { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: none; } }
-  .page-enter { animation: gc-fade-up 0.3s ease both; }
+  .page-enter { animation: gc-fade-up 0.3s ease backwards; }
   .plan-banner, .support-banner, .alert { animation: gc-fade-up 0.25s ease both; }
   dialog.modal[open] { animation: gc-pop 0.2s ease both; }
   dialog.modal[open]::backdrop { animation: gc-fade 0.2s ease both; }

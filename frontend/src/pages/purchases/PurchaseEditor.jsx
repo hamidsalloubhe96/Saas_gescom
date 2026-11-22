@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import api, { parseError } from '../../api'
+import LineCards from '../../components/LineCards'
 import { fmtMoney } from '../../lib/format'
 import { addDays, computeLine, computeTotals, describeFieldErrors, today } from '../../lib/sales'
 
@@ -96,7 +97,7 @@ export default function PurchaseEditor() {
   if (loading) return <div className="splash" role="status">Chargement…</div>
 
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="max-lg:pb-24">
       <header className="page-head">
         <h1>{isEdit ? 'Modifier la commande' : 'Nouvelle commande fournisseur'}</h1>
         <p className="muted">Les totaux sont recalculés par le serveur à l'enregistrement.</p>
@@ -135,7 +136,13 @@ export default function PurchaseEditor() {
       </section>
 
       <section className="panel">
-        <div className="table-wrap flat">
+        <div className="lg:hidden">
+          <LineCards lines={lines} products={products} onPick={pickProduct} onChange={setLine} priceLabel="Prix d'achat"
+            onPrice={(key, v) => setLine(key, { unit_price: v })}
+            onRemove={(key) => setLines(lines.filter((x) => x.key !== key))}
+            net={(l) => computeLine({ ...l, discount_rate: 0 }).net} />
+        </div>
+        <div className="table-wrap flat max-lg:hidden">
           <table className="lines">
             <thead>
               <tr>
@@ -190,7 +197,15 @@ export default function PurchaseEditor() {
 
       <div className="form-actions">
         <Link to={isEdit ? `/achats/${id}` : '/achats'} className="btn btn-secondary btn-inline btn-link">Annuler</Link>
-        <button className="btn btn-inline" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+        <button className="btn btn-inline max-lg:hidden" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+      </div>
+      {/* Téléphone : le total et « Enregistrer » restent visibles en bas pendant la saisie. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-surface px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,.08)] lg:hidden">
+        <div className="min-w-0 flex-1 leading-tight">
+          <strong className="block text-sm tabular-nums">Total TTC {fmtMoney(totals.total)}</strong>
+          <span className="text-xs text-muted">{lines.length} {lines.length > 1 ? 'lignes' : 'ligne'}</span>
+        </div>
+        <button className="btn btn-inline min-h-11 shrink-0" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
       </div>
     </form>
   )

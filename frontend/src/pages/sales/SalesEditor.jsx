@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import api, { parseError } from '../../api'
+import LineCards from '../../components/LineCards'
 import { fmtMoney } from '../../lib/format'
 import { TYPE_LABEL, addDays, computeLine, computeTotals, describeFieldErrors, tierPrice, today } from '../../lib/sales'
 
@@ -118,7 +119,7 @@ export default function SalesEditor() {
 
   const label = TYPE_LABEL[type]
   return (
-    <form onSubmit={submit} noValidate>
+    <form onSubmit={submit} noValidate className="max-lg:pb-24">
       <header className="page-head page-head-row">
         <div>
           <h1>{isEdit ? `Modifier le ${label.toLowerCase()}` : `${type === 'quote' ? 'Nouveau' : 'Nouvelle'} ${label.toLowerCase()}`}</h1>
@@ -158,7 +159,24 @@ export default function SalesEditor() {
       </section>
 
       <section className="panel">
-        <div className="table-wrap flat">
+        <div className="lg:hidden">
+          <LineCards lines={lines} products={products} onPick={pickProduct} onChange={setLine} withDiscount
+            onPrice={(key, v) => setLine(key, { unit_price: v, price_auto: false })}
+            onRemove={(key) => setLines(lines.filter((x) => x.key !== key))}
+            net={(l) => computeLine({ ...l, by_weight: productOf(l)?.sold_by_weight }).net}
+            renderBadge={(l) => (l.price_auto && !l.unit_id && productOf(l) && Number(l.unit_price) < Number(productOf(l).sale_price) ? <span className="pill pill-on">Palier</span> : null)}
+            renderUnit={(l, i) => (productOf(l)?.units?.length > 0 ? (
+              <select aria-label={`Unité ligne ${i + 1}`} value={l.unit_id} className="mt-2 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-base"
+                onChange={(e) => {
+                  const u = productOf(l).units.find((x) => String(x.id) === e.target.value)
+                  setLine(l.key, { unit_id: e.target.value, unit: u ? u.name : productOf(l).unit, price_auto: true })
+                }}>
+                <option value="">{productOf(l).unit}</option>
+                {productOf(l).units.map((u) => <option key={u.id} value={u.id}>{u.name} ({u.quantity})</option>)}
+              </select>
+            ) : null)} />
+        </div>
+        <div className="table-wrap flat max-lg:hidden">
           <table className="lines">
             <thead>
               <tr>
@@ -226,7 +244,15 @@ export default function SalesEditor() {
 
       <div className="form-actions">
         <Link to={isEdit ? `/ventes/${id}` : `/ventes?type=${type}`} className="btn btn-secondary btn-inline btn-link">Annuler</Link>
-        <button className="btn btn-inline" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+        <button className="btn btn-inline max-lg:hidden" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
+      </div>
+      {/* Téléphone : le total et « Enregistrer » restent visibles en bas pendant la saisie. */}
+      <div className="fixed inset-x-0 bottom-0 z-30 flex items-center gap-2.5 border-t border-line bg-surface px-3 pt-2.5 pb-[max(0.625rem,env(safe-area-inset-bottom))] shadow-[0_-4px_12px_rgba(0,0,0,.08)] lg:hidden">
+        <div className="min-w-0 flex-1 leading-tight">
+          <strong className="block text-sm tabular-nums">Total TTC {fmtMoney(totals.total)}</strong>
+          <span className="text-xs text-muted">{lines.length} {lines.length > 1 ? 'lignes' : 'ligne'}</span>
+        </div>
+        <button className="btn btn-inline min-h-11 shrink-0" disabled={saving}>{saving ? 'Enregistrement…' : 'Enregistrer'}</button>
       </div>
     </form>
   )

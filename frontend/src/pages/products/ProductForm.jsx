@@ -20,11 +20,11 @@ const EMPTY = {
 
 export default function ProductForm({ product, categories, onSaved, onCancel, defaults }) {
   const isEdit = Boolean(product?.id)
-  const { isPharmacy, isBakery, w } = useBusiness()
+  const { isPharmacy, hasProduction, hasExpiry, w } = useBusiness()
   const [form, setForm] = useState(() =>
     isEdit
       ? { ...Object.fromEntries(Object.keys(EMPTY).map((k) => [k, product[k] ?? EMPTY[k]])), tiers: product.price_tiers ?? [], recipe: product.recipe_items ?? [] }
-      : { ...EMPTY, track_batches: isPharmacy, ...defaults },
+      : { ...EMPTY, track_batches: hasExpiry, ...defaults },
   )
   const [fields, setFields] = useState({})
   const [error, setError] = useState(null)
@@ -170,7 +170,7 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         </div>
       )}
       {isEdit && form.active_ingredient && <Equivalents productId={product.id} />}
-      {(isBakery || form.is_manufactured) && (
+      {(hasProduction || form.is_manufactured) && (
         <div className="field">
           <label id="origin-label">Origine</label>
           <div className="segmented" role="radiogroup" aria-labelledby="origin-label">
@@ -192,12 +192,12 @@ export default function ProductForm({ product, categories, onSaved, onCancel, de
         <textarea id="notes" name="notes" rows="2" value={form.notes ?? ''} onChange={set} />
         <p className="field-error">{fields.notes || ' '}</p>
       </div>
-      {isPharmacy && (
+      {(hasExpiry || form.track_batches) && (
         <label className="check">
           <input type="checkbox" name="track_batches" checked={Boolean(form.track_batches)} onChange={set} /> Suivre les lots et les dates de péremption
         </label>
       )}
-      {isBakery && !form.is_manufactured && (
+      {hasProduction && !form.is_manufactured && (
         <label className="check">
           <input type="checkbox" name="sellable" checked={Boolean(form.sellable)} onChange={set} /> Vendu en caisse (décochez pour un ingrédient : farine, levure…)
         </label>

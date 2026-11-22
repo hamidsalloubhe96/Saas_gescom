@@ -199,7 +199,7 @@ class ProductImporter
             $categories = Category::get(['id', 'name'])->mapWithKeys(fn ($c) => [mb_strtolower($c->name) => $c->id])->all();
             $categoriesCreated = 0;
             $created = $updated = 0;
-            $pharmacy = (tenant('business_type') ?? 'general') === 'pharmacy';
+            $pharmacy = tenant()->hasModule('expiry');
 
             foreach ($analysis['rows'] as $row) {
                 if (! in_array($row['status'], ['new', 'update'], true)) {

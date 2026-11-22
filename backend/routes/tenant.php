@@ -78,6 +78,7 @@ Route::prefix('api')
             // --- Utilisateurs ---
             Route::middleware(['permission:users.manage', 'hq'])->group(function () {
                 Route::put('settings/business-type', [\App\Http\Controllers\BusinessTypeController::class, 'update']);
+                Route::put('settings/modules', [\App\Http\Controllers\ModulesController::class, 'update']);
                 Route::get('roles', [UserController::class, 'roles']);
                 Route::get('users', [UserController::class, 'index']);
                 Route::post('users', [UserController::class, 'store']);

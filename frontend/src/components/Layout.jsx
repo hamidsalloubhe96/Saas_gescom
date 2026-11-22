@@ -41,7 +41,7 @@ const link = ({ isActive }) => cn(
 export default function Layout() {
   const { user, tenant, company, logout, can, platform } = useAuth()
   const { theme, toggle } = useTheme()
-  const { isPharmacy, isBakery, w } = useBusiness()
+  const { hasExpiry, hasProduction, w } = useBusiness()
   const imp = platform.impersonation
   const location = useLocation()
   const [open, setOpen] = useState(false) // tiroir du menu sur mobile
@@ -89,7 +89,7 @@ export default function Layout() {
           </div>
         </div>
         <nav aria-label="Navigation principale" className="-mr-2 flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto pr-2 [scrollbar-color:rgba(255,255,255,.25)_transparent] [scrollbar-width:thin]">
-          {NAV.filter((n) => n.to !== '/compte' && (!n.pharmacy || isPharmacy) && (!n.bakery || isBakery) && (!n.perm || can(n.perm))).map(({ to, label, end, icon: Icon }) => (
+          {NAV.filter((n) => n.to !== '/compte' && (!n.pharmacy || hasExpiry) && (!n.bakery || hasProduction) && (!n.perm || can(n.perm))).map(({ to, label, end, icon: Icon }) => (
             <NavLink key={to} to={to} end={end} className={link}>
               <Icon className="size-[18px] shrink-0" aria-hidden="true" />
               {to === '/produits' ? w.stockNav : label}

@@ -8,10 +8,21 @@ import { useBusiness } from '../lib/business'
 
 /** Mon compte : nom, e-mail et mot de passe de l'utilisateur connecté. */
 export default function Account() {
-  const { user, refresh, can, setBusinessType } = useAuth()
+  const { user, refresh, can, setBusinessType, modules, setModules } = useAuth()
   const { type } = useBusiness()
   const [typeBusy, setTypeBusy] = useState(false)
   const [typeMsg, setTypeMsg] = useState(null)
+
+  async function toggleModule(key, on, messages) {
+    setTypeBusy(true); setTypeMsg(null)
+    try {
+      const { data } = await api.put('/settings/modules', { [key]: on })
+      setModules(data.modules)
+      setTypeMsg(messages[on ? 0 : 1])
+    } catch (err) {
+      setTypeMsg(parseError(err).message)
+    } finally { setTypeBusy(false) }
+  }
 
   async function changeType(e) {
     const value = e.target.value
@@ -88,8 +99,17 @@ export default function Account() {
               <option value="pharmacy">Pharmacie</option>
               <option value="bakery">Boulangerie</option>
             </select>
-            <p className="field-hint">{typeMsg ?? 'Adapte le menu, le vocabulaire et les modules (lots, péremptions, équivalents).'}</p>
+            <p className="field-hint">{typeMsg ?? 'Adapte le menu et le vocabulaire de l\'application.'}</p>
           </div>
+          <h3 className="mt-4 text-sm font-semibold">Modules</h3>
+          <label className="check">
+            <input type="checkbox" checked={(modules ?? []).includes('expiry')} disabled={typeBusy}
+              onChange={(e) => toggleModule('expiry', e.target.checked, ['Suivi des péremptions activé : « Péremptions » apparaît dans le menu.', 'Suivi des péremptions désactivé.'])} /> Suivre les dates de péremption (lots, alertes) : charcuterie, produits frais, pharmacie
+          </label>
+          <label className="check">
+            <input type="checkbox" checked={(modules ?? []).includes('production')} disabled={typeBusy}
+              onChange={(e) => toggleModule('production', e.target.checked, ['Fabrication activée : « Production » apparaît dans le menu et « Fabriqué » sur les fiches produits.', 'Fabrication désactivée : vos recettes sont conservées.'])} /> Fabriquer sur place (recettes, production, invendus) : boulangerie, traiteur
+          </label>
         </section>
       )}
 

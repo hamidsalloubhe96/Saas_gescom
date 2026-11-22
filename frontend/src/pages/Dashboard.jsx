@@ -28,7 +28,7 @@ export default function Dashboard() {
   const [data, setData] = useState(null)
   const [error, setError] = useState(null)
   const [days, setDays] = useState(14) // période du graphique : 14 ou 30 jours
-  const { isPharmacy } = useBusiness()
+  const { hasExpiry } = useBusiness()
   const [expiry, setExpiry] = useState(null)
 
   useEffect(() => {
@@ -36,9 +36,9 @@ export default function Dashboard() {
   }, [])
 
   useEffect(() => {
-    if (!isPharmacy || !can('products.view')) return
+    if (!hasExpiry || !can('products.view')) return
     api.get('/stock/expiry', { params: { days: 30 } }).then(({ data: x }) => setExpiry(x.summary)).catch(() => {})
-  }, [isPharmacy, can])
+  }, [hasExpiry, can])
 
   const today = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })
   const d = data
@@ -82,7 +82,7 @@ export default function Dashboard() {
             <Kpi label="Stock bas" value={String(d.stock.low_count)} to="/produits?low=1"
               tone={d.stock.low_count > 0 ? 'warn' : undefined}
               sub={d.stock.low_count > 0 ? 'à réapprovisionner' : 'Aucun produit sous le seuil'} />
-            {isPharmacy && expiry && (
+            {hasExpiry && expiry && (
               <Kpi label="Péremptions" value={String(expiry.expired + expiry.soon)} to="/peremptions"
                 tone={expiry.expired + expiry.soon > 0 ? 'warn' : undefined}
                 sub={expiry.expired > 0 ? `${expiry.expired} lot${expiry.expired > 1 ? 's' : ''} périmé${expiry.expired > 1 ? 's' : ''}` : expiry.soon > 0 ? 'lots à écouler sous 30 jours' : 'Aucun lot concerné'} />

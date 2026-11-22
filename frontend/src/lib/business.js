@@ -8,7 +8,7 @@ const WORDS = {
 }
 
 export function useBusiness() {
-  const { businessType } = useAuth()
+  const { businessType, modules } = useAuth()
   const type = WORDS[businessType] ? businessType : 'general'
-  return { type, isPharmacy: type === 'pharmacy', isBakery: type === 'bakery', w: WORDS[type] }
+  return { type, isPharmacy: type === 'pharmacy', isBakery: type === 'bakery', hasExpiry: (modules ?? []).includes('expiry'), hasProduction: (modules ?? []).includes('production'), w: WORDS[type] }
 }

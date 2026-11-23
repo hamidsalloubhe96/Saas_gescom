@@ -118,7 +118,7 @@ export default function Products() {
       </header>
 
       <div className="toolbar">
-        <input type="search" placeholder={isPharmacy ? 'Rechercher (nom, principe actif, code-barres)…' : 'Rechercher (désignation, référence, code-barres)…'} aria-label="Rechercher"
+        <input type="search" placeholder={isPharmacy ? 'Nom, principe actif ou code-barres' : 'Nom, référence ou code-barres'} aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <ScanButton onScan={scanForSearch} title="Retrouver un produit" />
         <select aria-label="Filtrer par catégorie" value={categoryId}

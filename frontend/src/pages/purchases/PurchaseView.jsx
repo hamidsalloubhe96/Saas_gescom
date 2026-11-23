@@ -82,7 +82,7 @@ export default function PurchaseView() {
         <Link to="/achats" className="back">← Achats</Link>
         <header className="page-head page-head-row">
           <div>
-            <h1>Commande {po.number} <PurchasePill po={po} /></h1>
+            <h1>Commande <span className="whitespace-nowrap">{po.number}</span> <PurchasePill po={po} /></h1>
             <p className="muted">
               {po.supplier?.name}
               {pay && <> · <span className={`pill pill-${pay[1]}`}>{pay[0]}</span></>}

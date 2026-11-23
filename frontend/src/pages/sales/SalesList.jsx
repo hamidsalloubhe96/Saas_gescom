@@ -78,7 +78,7 @@ export default function SalesList() {
       </div>
 
       <div className="toolbar">
-        <input type="search" placeholder="Rechercher (numéro, client)…" aria-label="Rechercher"
+        <input type="search" placeholder="Numéro ou client" aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <select aria-label="Filtrer par statut" value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1) }}>
@@ -92,7 +92,7 @@ export default function SalesList() {
       <ListCards loading={loading} isEmpty={rows.length === 0}
         empty={query || status ? 'Aucun résultat pour ces critères.' : `Aucun ${TYPE_LABEL[type].toLowerCase()} pour le moment.`}>
         {rows.map((d) => (
-          <ListCard key={d.id} to={`/ventes/${d.id}`} title={d.number ?? 'Sans numéro'} badge={<StatusPill doc={d} />} sub={d.customer?.name}
+          <ListCard key={d.id} to={`/ventes/${d.id}`} title={<span className="whitespace-nowrap">{d.number ?? 'Sans numéro'}</span>} badge={<StatusPill doc={d} />} sub={d.customer?.name}
             details={[
               [isInvoice ? 'Échéance' : 'Validité', fmtDay(d.due_date)],
               ['Total TTC', fmtMoney(d.total)],

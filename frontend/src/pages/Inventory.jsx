@@ -95,7 +95,7 @@ export default function Inventory() {
         <div className="relative flex-1">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input ref={input} type="search" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Chercher un produit à compter"
-            placeholder="Chercher un produit à compter…" className="pos-search !mb-0 !pl-9" />
+            placeholder="Produit à compter" className="pos-search !mb-0 !pl-9" />
           {results.length > 0 && (
             <ul className="absolute z-10 mt-1 w-full list-none overflow-hidden rounded-lg border border-line bg-surface p-0 shadow-lg">
               {results.map((p) => (

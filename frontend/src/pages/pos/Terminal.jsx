@@ -180,7 +180,7 @@ export default function Terminal({ onSold }) {
     <div className={`pos ${cart.length > 0 ? 'max-lg:pb-24' : ''}`}>
       <section className="pos-catalog">
         <div className="mb-3 flex gap-2">
-          <input ref={searchRef} type="search" className="pos-search !mb-0 flex-1" placeholder="Rechercher ou scanner un code-barres…"
+          <input ref={searchRef} type="search" className="pos-search !mb-0 flex-1" placeholder="Produit ou code-barres"
             aria-label="Rechercher un produit" value={q} onChange={(e) => setQ(e.target.value)} onKeyDown={onSearchKey} />
           <ScanButton onScan={scanCode} continuous title="Scanner les articles" className="min-h-12" />
         </div>

@@ -121,7 +121,7 @@ export default function Partners({ resource, title, singular, extra }) {
       </header>
 
       <div className="toolbar">
-        <input type="search" placeholder="Rechercher (nom, email, téléphone, ville)…" aria-label="Rechercher"
+        <input type="search" placeholder="Nom, téléphone ou ville" aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <select aria-label="Filtrer par statut" value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1) }}>

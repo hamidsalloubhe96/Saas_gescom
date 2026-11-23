@@ -77,7 +77,7 @@ function DayProduction({ date }) {
           <tbody>
             {plan.map((p) => (
               <tr key={p.id}>
-                <td><strong>{p.name}</strong><div className="muted small">{fmtQty(p.batch_yield)} {p.unit === 'pièce' && p.batch_yield > 1 ? 'pièces' : p.unit} par fournée</div></td>
+                <td><strong>{p.name}</strong><div className="muted small">{fmtQty(p.batch_yield)} {p.unit === 'pièce' && p.batch_yield > 1 ? 'pièces' : p.unit} <span className="whitespace-nowrap">par fournée</span></div></td>
                 <td className="num">{fmtQty(p.produced)}</td>
                 <td className="num">{p.suggested == null ? '—' : <button type="button" className="link-btn" onClick={() => setQty({ ...qty, [p.id]: String(p.suggested) })}>{p.suggested}</button>}</td>
                 <td><input className="num" type="number" min="0" step="any" aria-label={`Quantité à produire : ${p.name}`} value={qty[p.id] ?? ''} onChange={(e) => setQty({ ...qty, [p.id]: e.target.value })} /></td>

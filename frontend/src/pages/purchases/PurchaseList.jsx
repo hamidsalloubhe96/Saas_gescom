@@ -55,7 +55,7 @@ export default function PurchaseList() {
       </header>
 
       <div className="toolbar">
-        <input type="search" placeholder="Rechercher (numéro, fournisseur)…" aria-label="Rechercher"
+        <input type="search" placeholder="Numéro ou fournisseur" aria-label="Rechercher"
           value={search} onChange={(e) => setSearch(e.target.value)} />
         <select aria-label="Filtrer par statut" value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1) }}>
@@ -71,7 +71,7 @@ export default function PurchaseList() {
         {rows.map((p) => {
           const pay = paymentState(p)
           return (
-            <ListCard key={p.id} to={`/achats/${p.id}`} title={p.number} badge={<PurchasePill po={p} />} sub={p.supplier?.name}
+            <ListCard key={p.id} to={`/achats/${p.id}`} title={<span className="whitespace-nowrap">{p.number}</span>} badge={<PurchasePill po={p} />} sub={p.supplier?.name}
               details={[
                 ['Livraison prévue', fmtDay(p.expected_date)],
                 ['Total TTC', fmtMoney(p.total)],

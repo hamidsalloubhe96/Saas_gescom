@@ -31,7 +31,7 @@ export default function Pos() {
   const isOpen = Boolean(session)
   const tabs = [
     ...(isOpen ? [['sell', 'Vente'], ['sales', 'Ventes de la session']] : []),
-    ['history', 'Historique des caisses'],
+    ['history', 'Historique'],
   ]
   const active = tabs.some(([k]) => k === tab) ? tab : tabs[0][0]
 
@@ -42,7 +42,7 @@ export default function Pos() {
           <h1>Caisse</h1>
           <p className="muted">
             {isOpen
-              ? <>Ouverte le {fmtDate(session.opened_at)} · {session.summary.sales_count} vente(s) · {fmtMoney(session.summary.total_sales)}</>
+              ? <>Ouverte le {fmtDate(session.opened_at)}<br className="lg:hidden" /><span className="max-lg:hidden"> · </span>{session.summary.sales_count} {session.summary.sales_count > 1 ? 'ventes' : 'vente'} · {fmtMoney(session.summary.total_sales)}</>
               : 'La caisse est fermée.'}
           </p>
         </div>

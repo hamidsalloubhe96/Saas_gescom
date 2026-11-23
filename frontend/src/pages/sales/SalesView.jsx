@@ -86,7 +86,7 @@ export default function SalesView() {
         <Link to={`/ventes?type=${doc.type}`} className="back">← {isQuote ? 'Devis' : 'Factures'}</Link>
         <header className="page-head page-head-row">
           <div>
-            <h1>{title} <StatusPill doc={doc} /></h1>
+            <h1>{TYPE_LABEL[doc.type]} <span className="whitespace-nowrap">{doc.number ?? '(brouillon)'}</span> <StatusPill doc={doc} /></h1>
             <p className="muted">
               {doc.customer?.name}
               {doc.source_quote && <> · issue du devis <Link to={`/ventes/${doc.source_quote.id}`}>{doc.source_quote.number}</Link></>}

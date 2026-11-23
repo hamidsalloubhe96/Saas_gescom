@@ -3,6 +3,11 @@
 @import "tailwindcss";
 @import "./theme.css";
 
+/* Téléphone : texte courant 15 px et petit texte 13 px (14 et 12 px sur grand écran). */
+@media (max-width: 1023px) {
+  :root { --text-sm: 0.9375rem; --text-sm--line-height: 1.4; --text-xs: 0.8125rem; --text-xs--line-height: 1.35; }
+}
+
 @layer components {
   /* ---------- Texte ---------- */
   .muted { @apply mt-1 text-muted; }
@@ -168,7 +173,7 @@
   .sheet { @apply mb-4 rounded-xl border border-line bg-surface p-5 sm:p-8; }
   .sheet-head { @apply mb-6 flex flex-wrap justify-between gap-4; }
   .sheet-title { @apply text-[1.4rem] tracking-widest; }
-  .sheet-number { @apply mt-1 text-lg text-muted; }
+  .sheet-number { @apply mt-1 whitespace-nowrap text-lg text-muted; }
   .sheet-company { @apply mb-3 text-lg font-bold; }
   .sheet-meta div { @apply flex justify-between gap-4; }
   .sheet-meta dt { @apply text-muted; }
